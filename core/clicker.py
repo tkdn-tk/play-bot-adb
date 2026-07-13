@@ -62,6 +62,32 @@ class Clicker:
                 self.device = None
         self.random_delay()
         
+    def fast_click(self, x, y, offset_range=5):
+        """Click very quickly without the standard delay."""
+        self._connect()
+        
+        offset_x = random.randint(-offset_range, offset_range)
+        offset_y = random.randint(-offset_range, offset_range)
+        
+        target_x = x + offset_x
+        target_y = y + offset_y
+        
+        sc = self.detector.screen_capture
+        if sc.native_width and sc.native_height and sc.target_width and sc.target_height:
+            scale_x = sc.native_width / sc.target_width
+            scale_y = sc.native_height / sc.target_height
+            if scale_x != 1.0 or scale_y != 1.0:
+                target_x = int(target_x * scale_x)
+                target_y = int(target_y * scale_y)
+                
+        if self.device:
+            try:
+                self.device.click(target_x, target_y)
+            except Exception as e:
+                logger.error(f"ADB fast click failed, resetting device: {e}")
+                self.device = None
+        # No delay for fast click
+        
     def click_window_relative(self, rel_x, rel_y, offset_range=5):
         """Click at coordinates relative to the emulator window. With ADB, this is the same as absolute."""
         self.click(rel_x, rel_y, offset_range)

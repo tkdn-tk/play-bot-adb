@@ -10,7 +10,7 @@ import psutil
 import questionary
 
 from core.logger import logger
-from core.bot import RerollBot
+from core.bot import AutoPlayBot
 from tools.capture_tool import CaptureTool
 
 def load_config(config_path="config.yaml"):
@@ -22,7 +22,7 @@ def load_config(config_path="config.yaml"):
         sys.exit(1)
 
 def run_bot(config):
-    bot = RerollBot(config)
+    bot = AutoPlayBot(config)
     
     # Setup hotkey for emergency stop and pause
     hotkey = config.get("hotkey", "F12")
@@ -109,7 +109,7 @@ def main():
         tool.run()
         return
         
-    print("--- Cookie Run Classic CV Reroll Bot ---")
+    print("--- Cookie Run AutoPlay Bot ---")
     
     config_path = "config.yaml"
     instance_number = None
@@ -136,6 +136,24 @@ def main():
         selected_title = interactive_select_mumu()
         if selected_title:
             config["emulator_window_title"] = selected_title
+            
+    mode_choices = [
+        questionary.Choice(title="Non-Fast Start (Default)", value="default"),
+        questionary.Choice(title="Fast Start", value="fast_start")
+    ]
+    selected_mode = questionary.select(
+        "Select bot mode:",
+        choices=mode_choices
+    ).ask()
+    
+    if selected_mode:
+        config["bot_mode"] = selected_mode
+    else:
+        config["bot_mode"] = "default"
+        
+    if config["bot_mode"] == "default":
+        skip_macro = questionary.confirm("Skip macro execution?", default=False).ask()
+        config["skip_macro"] = bool(skip_macro)
             
     logger.set_config(config)
     

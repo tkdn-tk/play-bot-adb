@@ -48,19 +48,27 @@ class ScreenCapture:
                 return None
                 
         try:
-            # Capture using adbutils
-            pil_img = self.device.screenshot()
+            # Capture using adb exec-out screencap -p
+            import subprocess
+            from adbutils._utils import get_adb_exe
             
-            # Convert to numpy array (RGB format from PIL)
-            img_np = np.array(pil_img)
+            adb = get_adb_exe()
+            png_bytes = subprocess.check_output(
+                [adb, "-s", self.serial, "exec-out", "screencap", "-p"],
+                stderr=subprocess.STDOUT
+            )
             
-            # Check if image is valid
-            if img_np.size == 0:
-                logger.error("Empty screenshot received from ADB")
+            if not png_bytes or not png_bytes.startswith(b'\x89PNG'):
+                logger.error("Empty or invalid screenshot received from ADB")
                 return None
                 
-            # PIL returns RGB, we need to convert to BGR for OpenCV
-            img_bgr = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
+            # Decode the PNG bytes into a numpy array (BGR format for OpenCV)
+            img_np = np.frombuffer(png_bytes, np.uint8)
+            img_bgr = cv2.imdecode(img_np, cv2.IMREAD_COLOR)
+            
+            if img_bgr is None:
+                logger.error("Failed to decode screenshot")
+                return None
             
             # Verify resolution matches config, if not, warn or resize
             h, w = img_bgr.shape[:2]
