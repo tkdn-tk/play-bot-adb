@@ -41,9 +41,37 @@ def execute_wait_main_menu(bot):
     return None
 
 def execute_prepare_play(bot):
-    if bot.clicker.click_template("play_tab.png", timeout=5.0):
-        time.sleep(1.0)
-        return State.BUY_BUFFS
+    import os
+    play_tabs = [f for f in os.listdir("templates") if f.startswith("play_tab") and f.endswith(".png")]
+    
+    start_time = time.time()
+    while time.time() - start_time < 5.0:
+        screen = bot.screen.capture()
+        if screen is None:
+            time.sleep(0.5)
+            continue
+            
+        best_match = None
+        for tab in play_tabs:
+            result = bot.detector.find(tab, screen_img=screen, threshold=0.8)
+            if result:
+                if best_match is None or result[2] > best_match['conf']:
+                    best_match = {
+                        'tab': tab,
+                        'x': result[0],
+                        'y': result[1],
+                        'conf': result[2]
+                    }
+                    
+        if best_match:
+            bot.clicker.click_window_relative(best_match['x'], best_match['y'])
+            logger.info(f"Clicked play tab using {best_match['tab']} (conf={best_match['conf']:.2f})")
+            time.sleep(1.0)
+            return State.BUY_BUFFS
+            
+        time.sleep(0.5)
+        
+    logger.error("Failed to find any play_tab variants.")
     return None
 
 def execute_buy_buffs(bot):

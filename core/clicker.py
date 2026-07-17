@@ -56,7 +56,8 @@ class Clicker:
         logger.debug(f"Clicking at ({target_x}, {target_y})")
         if self.device:
             try:
-                self.device.click(target_x, target_y)
+                # Use a 50ms swipe instead of tap to make sure the game registers the touch duration
+                self.device.shell(["input", "swipe", str(target_x), str(target_y), str(target_x), str(target_y), "50"])
             except Exception as e:
                 logger.error(f"ADB click failed, resetting device: {e}")
                 self.device = None

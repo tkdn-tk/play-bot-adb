@@ -63,13 +63,7 @@ REQUIRED_TEMPLATES = [
 class CaptureTool:
     def __init__(self, config=None):
         self.config = config or {}
-        window_title = self.config.get("emulator_window_title", "MuMu Player")
-        self.screen = ScreenCapture(
-            window_title=window_title,
-            target_width=self.config.get("resolution", {}).get("width", 1280),
-            target_height=self.config.get("resolution", {}).get("height", 720),
-            target_position=self.config.get("resolution", {}).get("position", "top-right")
-        )
+        self.screen = ScreenCapture(config=self.config)
         self.drawing = False
         self.ix, self.iy = -1, -1
         self.rect = None

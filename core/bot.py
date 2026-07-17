@@ -29,8 +29,13 @@ class AutoPlayBot:
         self.config["adb"]["serial"] = resolved_serial
         
         self.screen = ScreenCapture(config)
-        self.clicker = Clicker(config)
+        
         self.detector = Detector(config)
+        self.detector.screen_capture = self.screen
+        
+        self.clicker = Clicker(config)
+        self.clicker.screen_capture = self.screen
+        self.clicker.detector = self.detector
         
         self.current_state = State.WAIT_MAIN_MENU
         self.session_count = 0
