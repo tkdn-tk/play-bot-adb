@@ -69,23 +69,14 @@ class ScreenCapture:
                 return None
                 
         try:
-            # Capture using adb exec-out screencap -p
-            import subprocess
-            import adbutils
-            
+            # Capture using adbutils native python socket to avoid needing a global adb.exe
             try:
-                adb = adbutils.adb_path()
-            except (ImportError, AttributeError):
-                # Fallback if adbutils.adb_path() is removed or broken in this version
-                if hasattr(adbutils.adb, 'path'):
-                    adb = adbutils.adb.path
-                else:
-                    adb = "adb"
-                    
-            png_bytes = subprocess.check_output(
-                [adb, "-s", self.serial, "exec-out", "screencap", "-p"],
-                stderr=subprocess.STDOUT
-            )
+                png_bytes = self.device.shell(["screencap", "-p"], encoding=None)
+                if isinstance(png_bytes, str):
+                    png_bytes = png_bytes.encode('latin1').replace(b'\r\n', b'\n')
+            except Exception as e:
+                logger.error(f"Failed native screencap: {e}")
+                raise
             
             if not png_bytes or not png_bytes.startswith(b'\x89PNG'):
                 logger.error("Empty or invalid screenshot received from ADB")

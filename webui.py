@@ -176,28 +176,6 @@ async def websocket_logs(websocket: WebSocket):
 app.mount("/", StaticFiles(directory="web", html=True), name="web")
 
 def minimize_to_tray():
-    import ctypes
-    import ctypes.wintypes
-    import sys
-    import os
-    
-    # In detached mode, sys.stdout and sys.stderr might be None
-    if sys.stdout is None: sys.stdout = open(os.devnull, "w")
-    if sys.stderr is None: sys.stderr = open(os.devnull, "w")
-    
-    hwnd = ctypes.windll.kernel32.GetConsoleWindow()
-    if hwnd:
-        try:
-            import win32gui
-            import win32con
-            
-            # Detach and kill the old console window
-            ctypes.windll.kernel32.FreeConsole()
-            win32gui.PostMessage(hwnd, win32con.WM_CLOSE, 0, 0)
-            
-        except Exception:
-            pass
-
     try:
         import pystray
         from PIL import Image, ImageDraw
@@ -213,53 +191,8 @@ def minimize_to_tray():
             d.ellipse((28, 20, 34, 26), fill=(76, 42, 21))
             return image
             
-        def show_window(icon, item):
-            try:
-                import os, sys, ctypes
-                h = ctypes.windll.kernel32.GetConsoleWindow()
-                if h == 0:
-                    ctypes.windll.kernel32.AllocConsole()
-                    new_h = ctypes.windll.kernel32.GetConsoleWindow()
-                    
-                    try:
-                        fd = os.open("CONOUT$", os.O_RDWR)
-                        os.dup2(fd, 1)
-                        os.dup2(fd, 2)
-                    except Exception:
-                        pass
-                    
-                    sys.stdout = open("CONOUT$", "w", encoding="utf-8")
-                    sys.stderr = open("CONOUT$", "w", encoding="utf-8")
-                    print("--- Cookie Run AutoPlay Bot Console ---")
-                    print("Console restored. Click the 'X' to hide it back into the tray.")
-                    
-                    if new_h:
-                        import win32gui, win32con
-                        win32gui.ShowWindow(new_h, win32con.SW_RESTORE)
-                        try: win32gui.SetForegroundWindow(new_h)
-                        except: pass
-                        
-                    global _console_handler
-                    def console_handler(ctrl_type):
-                        if ctrl_type == 2:
-                            ctypes.windll.kernel32.FreeConsole()
-                            return True
-                        return False
-                    _console_handler = ctypes.WINFUNCTYPE(ctypes.wintypes.BOOL, ctypes.wintypes.DWORD)(console_handler)
-                    ctypes.windll.kernel32.SetConsoleCtrlHandler(_console_handler, True)
-                else:
-                    import win32gui
-                    import win32con
-                    win32gui.ShowWindow(h, win32con.SW_RESTORE)
-                    try:
-                        win32gui.SetForegroundWindow(h)
-                    except:
-                        pass
-            except Exception as e:
-                with open("tray_error.log", "a") as f:
-                    f.write(str(e) + "\n")
-            
         def exit_action(icon, item):
+            import os
             icon.stop()
             os._exit(0)
             
@@ -268,11 +201,11 @@ def minimize_to_tray():
             webbrowser.open_new("http://localhost:8000")
             
         menu = pystray.Menu(
-            pystray.MenuItem('Show Console', show_window),
             pystray.MenuItem('Show WebUI', open_webui),
             pystray.MenuItem('Exit', exit_action)
         )
         icon = pystray.Icon("CookieBot", create_image(), "CookieRun Bot", menu)
+        
         icon.run_detached()
     except ImportError:
         pass # If pystray isn't installed, just stay hidden (can be closed via UI)
