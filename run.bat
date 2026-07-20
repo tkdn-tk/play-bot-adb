@@ -37,11 +37,7 @@ if not exist config.yaml (
 )
 
 echo.
-echo Starting bot...
+echo Starting bot in background console...
 echo =========================================
-python main.py
-if %errorlevel% neq 0 (
-    echo.
-    echo [!] Bot exited with an error.
-    pause
-)
+start "" conhost.exe venv\Scripts\python.exe main.py
+exit /b 0
