@@ -17,6 +17,21 @@ def execute_wait_main_menu(bot):
             
         if bot.detector.find("main_menu.png", screen_img=screen):
             logger.info("Main menu found!")
+            
+            # Check if it's time to run the gift bot
+            gift_interval_minutes = bot.config.get("gift_interval_minutes")
+            if gift_interval_minutes is None:
+                # Fallback to hours if minutes not specified
+                gift_interval_hours = bot.config.get("gift_interval_hours", 1.0)
+                gift_interval_minutes = gift_interval_hours * 60.0
+                
+            interval_seconds = gift_interval_minutes * 60
+            
+            if time.time() - bot.last_gift_time >= interval_seconds:
+                logger.info(f"Gift interval ({gift_interval_minutes}m) elapsed. Running gift bot...")
+                bot.last_gift_time = time.time()
+                return State.SEND_GIFTS
+                
             return State.PREPARE_PLAY
             
         # Try to close variants of popups dynamically
@@ -25,8 +40,8 @@ def execute_wait_main_menu(bot):
         
         popup_closed = False
         for popup in popups:
-            # Added threshold=0.8 to prevent false positives that cause click misses
-            result = bot.detector.find(popup, screen_img=screen, threshold=0.8)
+            # Lowered threshold to 0.7 to catch buttons that are slightly faded or different (like popup_confirm_3 at 0.73)
+            result = bot.detector.find(popup, screen_img=screen, threshold=0.7)
             if result:
                 bot.clicker.click_window_relative(result[0], result[1])
                 logger.info(f"Closed popup using {popup} (conf={result[2]:.2f})")
@@ -67,6 +82,9 @@ def execute_prepare_play(bot):
             bot.clicker.click_window_relative(best_match['x'], best_match['y'])
             logger.info(f"Clicked play tab using {best_match['tab']} (conf={best_match['conf']:.2f})")
             time.sleep(1.0)
+            if bot.config.get("skip_buy_buffs", False):
+                logger.info("Skipping buy buffs phase...")
+                return State.MULTI_BUY
             return State.BUY_BUFFS
             
         time.sleep(0.5)

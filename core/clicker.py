@@ -144,3 +144,26 @@ class Clicker:
             logger.warning(f"Unknown key '{key}' or device not connected.")
             
         time.sleep(random.uniform(0.1, 0.3))
+
+    def swipe(self, x1, y1, x2, y2, duration=500):
+        """Swipe from (x1, y1) to (x2, y2) over duration ms."""
+        self._connect()
+        
+        sc = self.detector.screen_capture
+        if sc.native_width and sc.native_height and sc.target_width and sc.target_height:
+            scale_x = sc.native_width / sc.target_width
+            scale_y = sc.native_height / sc.target_height
+            if scale_x != 1.0 or scale_y != 1.0:
+                x1 = int(x1 * scale_x)
+                y1 = int(y1 * scale_y)
+                x2 = int(x2 * scale_x)
+                y2 = int(y2 * scale_y)
+                
+        logger.debug(f"Swiping from ({x1}, {y1}) to ({x2}, {y2}) over {duration}ms")
+        if self.device:
+            try:
+                self.device.shell(["input", "swipe", str(x1), str(y1), str(x2), str(y2), str(duration)])
+            except Exception as e:
+                logger.error(f"ADB swipe failed, resetting device: {e}")
+                self.device = None
+        self.random_delay()

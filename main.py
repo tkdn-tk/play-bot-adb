@@ -152,8 +152,25 @@ def main():
         config["bot_mode"] = "default"
         
     if config["bot_mode"] == "default":
-        skip_macro = questionary.confirm("Skip macro execution?", default=False).ask()
+        macro_choices = [
+            questionary.Choice(title="Skip Macro (Default)", value=True),
+            questionary.Choice(title="Run Macro", value=False)
+        ]
+        skip_macro = questionary.select(
+            "Macro execution:",
+            choices=macro_choices
+        ).ask()
         config["skip_macro"] = bool(skip_macro)
+        
+    buffs_choices = [
+        questionary.Choice(title="Skip Buy Buffs (Default)", value=True),
+        questionary.Choice(title="Buy Buffs", value=False)
+    ]
+    skip_buy_buffs = questionary.select(
+        "Buy buffs phase:",
+        choices=buffs_choices
+    ).ask()
+    config["skip_buy_buffs"] = bool(skip_buy_buffs)
             
     logger.set_config(config)
     

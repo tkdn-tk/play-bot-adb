@@ -2,7 +2,7 @@
 setlocal
 
 echo =========================================
-echo Cookie Run Classic - ADB Reroll Bot
+echo Cookie Run - AutoPlay & Gift Bot
 echo =========================================
 
 REM Check if Python is installed

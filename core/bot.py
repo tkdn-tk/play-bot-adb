@@ -17,6 +17,13 @@ class State(Enum):
     RUN_MACRO = auto()
     WAIT_RESULT = auto()
     CLOSE_RESULT = auto()
+    
+    # Gift Bot States
+    SEND_GIFTS = auto()
+    OPEN_MAIL_MENU = auto()
+    WAIT_MAIL_TAB = auto()
+    RECEIVE_GIFTS = auto()
+    CLOSE_MAIL = auto()
 
 class AutoPlayBot:
     def __init__(self, config):
@@ -42,11 +49,13 @@ class AutoPlayBot:
         self.running = False
         self.paused = False
         self.consecutive_restarts = 0
+        self.last_gift_time = 0
         
         self.steps = {}
         
     def _import_steps(self):
         import steps.autoplay
+        import steps.send_gift
         
         self.steps = {
             State.WAIT_MAIN_MENU: steps.autoplay.execute_wait_main_menu,
@@ -57,7 +66,14 @@ class AutoPlayBot:
             State.WAIT_START_BOOST: steps.autoplay.execute_wait_start_boost,
             State.RUN_MACRO: steps.autoplay.execute_run_macro,
             State.WAIT_RESULT: steps.autoplay.execute_wait_result,
-            State.CLOSE_RESULT: steps.autoplay.execute_close_result
+            State.CLOSE_RESULT: steps.autoplay.execute_close_result,
+            
+            # Gift steps
+            State.SEND_GIFTS: steps.send_gift.execute_send_gifts,
+            State.OPEN_MAIL_MENU: steps.send_gift.execute_open_mail_menu,
+            State.WAIT_MAIL_TAB: steps.send_gift.execute_wait_mail_tab,
+            State.RECEIVE_GIFTS: steps.send_gift.execute_receive_gifts,
+            State.CLOSE_MAIL: steps.send_gift.execute_close_mail
         }
 
     def start(self):
@@ -73,7 +89,6 @@ class AutoPlayBot:
             self.wait_if_paused()
             if self.current_state == State.WAIT_MAIN_MENU:
                 self.session_count += 1
-                self.session_start_time = time.time()
                 logger.info(f"--- Starting Gameplay Loop #{self.session_count} ---")
                 
             try:

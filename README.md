@@ -1,66 +1,76 @@
-# Cookie Run Classic — ADB Reroll Bot
-![Bot Status](https://img.shields.io/badge/status-active-success.svg)
-![Platform](https://img.shields.io/badge/platform-windows-blue.svg)
-![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
+# Cookie Run AutoPlay Bot
 
-An automated reroll bot for Cookie Run Classic running on MuMu Player (Android emulator). It uses Python, OpenCV template matching, and **ADB (Android Debug Bridge)** to interact with the game in the background. This allows the bot to send clicks directly to the emulator without taking over your actual mouse, meaning you can use your PC normally while the bot runs!
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)]()
+
+An advanced, fully automated ADB-based bot for Cookie Run, designed to run seamlessly on the **MuMu Player** emulator. The bot continuously plays the game, optionally handles buff purchasing and macro execution, and automatically manages sending and receiving gifts on a configurable schedule!
+
+## Table of Contents
+- [Features](#features)
+- [Requirements](#requirements)
+- [Setup & Installation](#setup--installation)
+- [Usage](#usage)
+- [Capture Tool](#capture-tool)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
-- **Background Interaction**: Uses ADB to send clicks to the emulator window without stealing your mouse cursor.
-- **Visual Recognition**: Uses OpenCV to strictly interact with the UI based on visual state.
-- **One-Click Install**: Easy setup using the provided `run.bat` script.
-- **Email Notifications**: Can automatically email you when a desired account is rolled.
+- **Endless AutoPlay**: Navigates the main menu, prepares play, runs macros (optional), and handles result screens automatically.
+- **Smart Gift Management**: Automatically sends and receives gifts at a configurable interval (supports both minutes and hours).
+- **Fast Start & Buff Purchasing**: Can be configured to spam-click the center during startup (Fast Start) and auto-purchase buffs.
+- **ADB Integration**: Uses background ADB commands (`input swipe`, `input click`) directly to the emulator. It works even if the window is in the background.
+- **Dynamic Instance Selection**: Automatically scans memory and window handles to detect and connect to your MuMu Player instance.
+- **Image Recognition**: Uses OpenCV template matching to navigate the game robustly.
 
-## Setup Instructions
+## Requirements
+- **Python 3.8+**
+- **MuMu Player** (The bot currently targets MuMu Player's specific process and window structures).
+- Emulator Resolution must match the `config.yaml` settings exactly (Default: **856x521**).
 
-### 1. Emulator Configuration (CRITICAL)
+## Setup & Installation
 
-The bot relies on template images matching the exact size of the buttons on your screen. Therefore, your emulator must be set to a specific resolution.
+1. **Clone the Repository** and open a terminal in the folder.
+2. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. **Configure the Bot**:
+   Copy `config.example.yaml` to `config.yaml`.
+   Modify the settings as needed (especially the gift intervals, delays, and emulator settings).
+4. **Start MuMu Player** and open Cookie Run.
 
-1. Open **MuMu Player**.
-2. Go to **Settings** (usually a menu in the top right).
-3. Under the **Display** or **Resolution** tab, set the resolution to exactly **1280 × 720**.
-4. Save and restart the emulator.
-5. Ensure **ADB debugging** (or "Root permission") is enabled in your emulator settings so the bot can connect to it.
+## Usage
 
-### 2. Installation & Running
-
-This project uses a one-click setup script that handles installing dependencies and managing the virtual environment.
-
-1. Ensure you have **Python 3.10+** installed on your computer.
-2. Double-click the `run.bat` file.
-3. On the first run, it will automatically:
-   - Create a virtual environment (`venv`).
-   - Install required packages from `requirements.txt`.
-   - Copy `config.example.yaml` to `config.yaml` and prompt you to edit it.
-
-### 3. Configuration
-
-Open `config.yaml` in a text editor to set up your preferences:
-- **Emulator Settings**: Ensure `emulator_window_title` matches your MuMu player window title.
-- **ADB Settings**: You can specify an exact ADB serial or let the bot find it.
-- **Desired Items**: Tell the bot which cookies/pets to look for by editing the `criteria` section. Place cropped screenshots of these desired items in the `templates/desired/` folder (with matching filenames).
-- **Email Notifications**: Add your SMTP credentials to receive emails on successful rolls.
-
-### 4. Running the Bot
-
-1. Start Cookie Run Classic on the emulator and sit at the Login screen.
-2. Double-click `run.bat`.
-3. The bot will connect via ADB and start rerolling in the background. You can move the emulator window aside and do other things on your PC!
-4. **Emergency Stop:** Press **F7** (configurable in `config.yaml`) to immediately stop the bot. Press **F8** to pause/resume.
-
-## Adding Templates
-
-UI elements can look slightly different depending on rendering settings. The `templates/` folder contains standard buttons. If the bot struggles to find buttons on your machine, you can run the built-in capture tool:
-```cmd
-run.bat capture
+You can start the bot using the included batch script (which automatically handles dependencies):
+```bash
+run.bat
 ```
-Or directly via Python:
-```cmd
-python main.py capture
+Or run the Python script directly:
+```bash
+python main.py
 ```
-See `CAPTURE_GUIDE.md` for detailed instructions on updating templates.
 
-## Logs
+### Interactive Prompts
+Upon launching, the bot will ask you:
+1. **Which MuMu instance to connect to?** (If multiple are found).
+2. **Bot Mode**: Default or Fast Start (spam click to start faster).
+3. **Macro Execution**: Skip Macro or Run Macro.
+4. **Buffs**: Skip Buy Buffs or Buy Buffs.
 
-Every completed reroll session is logged to `logs/reroll_log.json`. When the bot finds an account that matches your desired criteria, it will stop, play an alert sound, and notify you (if emails are enabled).
+### Hotkeys
+While the bot is running, you can control it with your keyboard:
+- **`F11`**: Pause / Resume the bot.
+- **`F12`**: Emergency Stop / Exit the bot.
+*(You can change these hotkeys inside `config.yaml`)*
+
+## Capture Tool
+If you need to update or replace the template images the bot looks for (e.g. because of an emulator update or UI change), use the built-in Capture Tool!
+Check out the [Capture Tool Guide](CaptureGuide.md) for more info.
+
+## Contributing
+Contributions, issues, and feature requests are welcome! Feel free to check the issues page. 
+If you want to contribute, please fork the repository and use a feature branch. Pull requests are warmly welcome.
+
+## License
+This project is licensed under the MIT License.

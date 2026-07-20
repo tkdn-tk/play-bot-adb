@@ -24,6 +24,22 @@ class ScreenCapture:
             # Try to connect, if it's already connected it will be a no-op
             self.adb.connect(self.serial)
             self.device = self.adb.device(serial=self.serial)
+            
+            # Verify connection is working
+            try:
+                # If device is offline or not found, this will raise an error
+                self.device.shell("echo 1")
+            except Exception as e:
+                logger.warning(f"ADB device {self.serial} unresponsive ({e}), reconnecting...")
+                try:
+                    self.adb.disconnect(self.serial)
+                except Exception:
+                    pass
+                self.adb.connect(self.serial)
+                self.device = self.adb.device(serial=self.serial)
+                # Test again; if it fails, it will drop to the outer except block
+                self.device.shell("echo 1")
+                
             logger.info(f"Connected to ADB device: {self.serial}")
             return True
         except Exception as e:

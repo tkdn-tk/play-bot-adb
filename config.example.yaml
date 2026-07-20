@@ -2,15 +2,12 @@
 emulator_window_title: "session-{number}"
 
 # Resolution (must match emulator setting)
-# position options: "no-change", "top-left", "top-middle", "top-right", "bottom-left", "bottom-middle", "bottom-right", "center"
 resolution:
   width: 856
   height: 521
-  position: "top-right"
 
 # ADB Settings (for background interaction)
 adb:
-  enabled: true
   # You can either provide an exact serial here, or leave it blank
   # If blank, the bot will use the 'emulator_window_title' at the top of this file.
   serial: "" 
@@ -22,6 +19,11 @@ adb:
 # Template matching confidence threshold (0.0 - 1.0)
 match_threshold: 0.69
 
+# Gift bot interval
+# You can specify either minutes or hours (minutes takes priority)
+gift_interval_minutes: 60
+# gift_interval_hours: 1.0
+
 # Delays (seconds) — randomized between min and max
 delays:
   click_min: 0.01
@@ -29,61 +31,11 @@ delays:
   between_steps_min: 1.0
   between_steps_max: 3.0
 
-email:
-  enabled: true
-  smtp_server: "smtp.gmail.com"
-  smtp_port: 465
-  sender_email: "your_email@gmail.com"
-  app_password: "your_app_password"
-  recipient_email: 
-    - "recipient1@gmail.com"
-  bad_roll_recipient_email: 
-    - "recipient1@gmail.com"
-  error_recipient_email:
-    - "recipient1@gmail.com"
+# Autoplay Settings
+bot_mode: "default" # Options: "default" or "fast_start" (spam clicks center during start)
+skip_buy_buffs: false # Set to true to skip the buff buying phase
+skip_macro: false # Set to true to skip running the gameplay macro
 
-# Coupon Code Configuration
-coupon_codes: 
-  - "COOKIERUNCLASSIC1M"
-  - "COOKIERUNCLASSICNO1"
-  - "AMAZINGKIWICOOK2"
-
-# Draw counts
-draws:
-  treasure_regular: 8
-  treasure_special: 3
-  pet: 7
-
-# Desired items criteria
-# Mode: "all" = must find ALL listed items, "any" = finding ANY one is enough
-criteria:
-  # Evaluation mode: 'image', 'text', or 'hybrid'
-  mode: "hybrid"
-  
-  treasure:
-    # MANDATORY ITEMS: The bot MUST find ALL of these items.
-    # Leave empty [] if no mandatory items.
-    mandatory_items:
-      - "laurel"
-      
-    # OPTIONAL ITEMS: The bot must find AT LEAST min_optional_count items from this list.
-    optional_items:
-      - "laurel"
-      - "lantern"
-      - "wallet"
-      
-    min_optional_count: 1
-    
-  pet:
-    mandatory_items:
-
-    optional_items: 
-      - "sitter"
-      - "tater"
-
-    min_optional_count: 1
-
-  # Template images should be placed in templates/desired/ with matching names
 
 # Error handling
 retry:
@@ -96,15 +48,9 @@ pause_hotkey: "F8" # Pause/Resume
 
 # Logging
 logging:
-  console: true
-  file: "logs/reroll_log.json"
   # Show detailed debug messages
   debug: false
   # Show warning messages (e.g. timeout failures)
   show_warnings: false
 
-# Clear Popups Optimization Settings
-clear_popups:
-  batch_screenshots: true
-  empty_scan_delay: 0.2
-  animation_delay: 0.8
+
