@@ -252,8 +252,13 @@ def minimize_to_tray():
             icon.stop()
             os._exit(0)
             
+        def open_webui(icon, item):
+            import webbrowser
+            webbrowser.open_new("http://localhost:8000")
+            
         menu = pystray.Menu(
             pystray.MenuItem('Show Console', show_window),
+            pystray.MenuItem('Show WebUI', open_webui),
             pystray.MenuItem('Exit', exit_action)
         )
         icon = pystray.Icon("CookieBot", create_image(), "CookieRun Bot", menu)
