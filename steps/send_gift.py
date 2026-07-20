@@ -174,6 +174,8 @@ def execute_send_gifts(bot):
 
 def execute_open_mail_menu(bot):
     logger.info("Opening mail menu...")
+    # Reset gift timer when transitioning to open mail state
+    bot.last_gift_time = time.time()
     if bot.clicker.click_template("mail_button.png", timeout=5.0):
         time.sleep(1.5)
         return State.WAIT_MAIL_TAB

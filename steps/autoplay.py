@@ -29,7 +29,6 @@ def execute_wait_main_menu(bot):
             
             if time.time() - bot.last_gift_time >= interval_seconds:
                 logger.info(f"Gift interval ({gift_interval_minutes}m) elapsed. Running gift bot...")
-                bot.last_gift_time = time.time()
                 return State.SEND_GIFTS
                 
             return State.PREPARE_PLAY

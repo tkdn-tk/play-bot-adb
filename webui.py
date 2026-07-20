@@ -177,6 +177,7 @@ app.mount("/", StaticFiles(directory="web", html=True), name="web")
 
 def minimize_to_tray():
     import ctypes
+    import ctypes.wintypes
     import sys
     import os
     
@@ -220,7 +221,6 @@ def minimize_to_tray():
                 print("Console restored. Click the 'X' to hide it back into the tray.")
                 
                 # Prevent 'X' from killing the bot
-                import ctypes.wintypes
                 global _console_handler
                 def console_handler(ctrl_type):
                     if ctrl_type == 2: # CTRL_CLOSE_EVENT

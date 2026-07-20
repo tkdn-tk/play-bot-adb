@@ -739,7 +739,12 @@
             </div>
 
             <div class="form-group">
-                <label for="emulatorInstance">📱 MuMu Player Instance</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <label for="emulatorInstance" style="margin-bottom: 0;">📱 MuMu Player Instance</label>
+                    <button class="btn btn-outline" onclick="loadInstances()" style="padding: 2px 8px; font-size: 12px; height: auto; box-shadow: 0 2px 0 var(--shadow-color);" title="Refresh instances">
+                        🔄 Refresh
+                    </button>
+                </div>
                 <select id="emulatorInstance">
                     <option value="">Loading instances...</option>
                 </select>
