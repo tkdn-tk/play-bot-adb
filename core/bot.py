@@ -36,6 +36,7 @@ class AutoPlayBot:
         self.config["adb"]["serial"] = resolved_serial
         
         self.screen = ScreenCapture(config)
+        self.screen.bot = self
         
         self.detector = Detector(config)
         self.detector.screen_capture = self.screen
@@ -46,6 +47,9 @@ class AutoPlayBot:
         
         self.current_state = State.WAIT_MAIN_MENU
         self.session_count = 0
+        self.start_time = 0
+        self.current_loop_start_time = 0
+        self.current_state_start_time = 0
         self.running = False
         self.paused = False
         self.consecutive_restarts = 0
@@ -83,12 +87,25 @@ class AutoPlayBot:
 
         self._import_steps()
         self.running = True
+        self.start_time = time.time()
+        self.current_loop_start_time = time.time()
+        self.current_state_start_time = time.time()
+        
+        try:
+            import ctypes
+            # ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED
+            ctypes.windll.kernel32.SetThreadExecutionState(0x80000000 | 0x00000001 | 0x00000002)
+            logger.debug("Windows sleep prevention activated.")
+        except Exception:
+            pass
+            
         logger.info("Bot started. Press F11 to Pause/Resume, F12 to Stop.")
         
         while self.running:
             self.wait_if_paused()
             if self.current_state == State.WAIT_MAIN_MENU:
                 self.session_count += 1
+                self.current_loop_start_time = time.time()
                 logger.info(f"--- Starting Gameplay Loop #{self.session_count} ---")
                 
             try:
@@ -104,6 +121,7 @@ class AutoPlayBot:
                 if self.config.get("retry", {}).get("restart_on_failure", True):
                     logger.warning("Restarting loop from WAIT_MAIN_MENU.")
                     self.current_state = State.WAIT_MAIN_MENU
+                    self.current_state_start_time = time.time()
                 else:
                     self.stop()
 
@@ -128,6 +146,7 @@ class AutoPlayBot:
             if next_state:
                 logger.success(f"State {self.current_state.name} completed. Moving to {next_state.name}")
                 self.current_state = next_state
+                self.current_state_start_time = time.time()
                 self.consecutive_restarts = 0
                 success = True
                 
@@ -149,6 +168,14 @@ class AutoPlayBot:
     def stop(self):
         logger.info("Stopping bot...")
         self.running = False
+        
+        try:
+            import ctypes
+            # Restore normal sleep behavior (ES_CONTINUOUS)
+            ctypes.windll.kernel32.SetThreadExecutionState(0x80000000)
+            logger.debug("Windows sleep prevention deactivated.")
+        except Exception:
+            pass
         
     def toggle_pause(self):
         self.paused = not self.paused

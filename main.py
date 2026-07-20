@@ -21,6 +21,15 @@ def load_config(config_path="config.yaml"):
         logger.error(f"Failed to load config: {e}")
         sys.exit(1)
 
+# Handle Detached Background Mode
+if "--detached" not in sys.argv:
+    import subprocess
+    print("Starting bot in background mode...")
+    # Relaunch the script detached with no console window
+    subprocess.Popen([sys.executable] + sys.argv + ["--detached"], creationflags=0x08000000)
+    sys.exit(0)
+
+
 def run_bot(config):
     bot = AutoPlayBot(config)
     
@@ -56,8 +65,7 @@ def run_bot(config):
         
     logger.info("Bot execution finished.")
 
-def interactive_select_mumu():
-    print("\nScanning for running MuMu Player instances...")
+def scan_mumu_instances():
     windows = []
     
     def callback(hwnd, extra):
@@ -82,6 +90,12 @@ def interactive_select_mumu():
                 windows.append({"title": title, "pid": pid, "proc": proc_name})
                     
     win32gui.EnumWindows(callback, None)
+    return windows
+
+def interactive_select_mumu():
+    print("\nScanning for running MuMu Player instances...")
+    windows = scan_mumu_instances()
+    
     
     if not windows:
         logger.warning("No MuMu Player instances found running.")
@@ -109,7 +123,16 @@ def main():
         tool.run()
         return
         
-    print("--- Cookie Run AutoPlay Bot ---")
+    mode = "web"
+    if len(sys.argv) > 1 and sys.argv[1] == "headless":
+        mode = "headless"
+        
+    if mode == "web":
+        import webui
+        webui.run_webui()
+        return
+        
+    print("--- Cookie Run AutoPlay Bot (Headless) ---")
     
     config_path = "config.yaml"
     instance_number = None

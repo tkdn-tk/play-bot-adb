@@ -3,10 +3,16 @@ import os
 import time
 import sys
 import traceback
-from adbutils._utils import get_adb_exe
+import adbutils
 
-print("ADB Exe path:", get_adb_exe())
-adb = get_adb_exe()
+try:
+    adb = adbutils.adb_path()
+except (ImportError, AttributeError):
+    if hasattr(adbutils.adb, 'path'):
+        adb = adbutils.adb.path
+    else:
+        adb = "adb"
+print("ADB Exe path:", adb)
 serial = "127.0.0.1:16384"
 
 # try to connect first

@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CookieRun Bot Control Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Light Theme */
+            --bg-gradient: radial-gradient(circle, #fcd34d 0%, #f59e0b 100%);
+            --card-bg: #fffbeb;
+            --card-border: #78350f;
+            --card-shadow: #b45309;
+            --stripe-1: #f59e0b;
+            --stripe-2: #d97706;
+            --text-main: #451a03;
+            --text-muted: #78350f;
+            --header-color: #b45309;
+            --header-shadow: #78350f;
+            --input-bg: #fff;
+            --input-focus: #fef3c7;
+            --btn-success: #10b981;
+            --btn-success-shadow: #047857;
+            --btn-warning: #f59e0b;
+            --btn-warning-shadow: #b45309;
+            --btn-danger: #ef4444;
+            --btn-danger-shadow: #b91c1c;
+            --console-bg: #fef3c7;
+            --console-border: #d97706;
+            --status-bg: rgba(255,255,255,0.5);
+        }
+
+        [data-theme="dark"] {
+            /* Dark Theme */
+            --bg-gradient: radial-gradient(circle, #78350f 0%, #431407 100%);
+            --card-bg: #290f04;
+            --card-border: #b45309;
+            --card-shadow: #170701;
+            --stripe-1: #92400e; 
+            --stripe-2: #78350f; 
+            --text-main: #fef3c7;
+            --text-muted: #fcd34d;
+            --header-color: #fcd34d;
+            --header-shadow: #000;
+            --input-bg: #431407;
+            --input-focus: #78350f;
+            --btn-success: #059669;
+            --btn-success-shadow: #064e3b;
+            --btn-warning: #d97706;
+            --btn-warning-shadow: #78350f;
+            --btn-danger: #dc2626;
+            --btn-danger-shadow: #7f1d1d;
+            --console-bg: #431407;
+            --console-border: #b45309;
+            --status-bg: rgba(0,0,0,0.4);
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 700;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            margin: 0;
+            padding: 80px 20px 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            grid-template-areas: 
+                "header header"
+                "state settings"
+                "logs logs";
+            gap: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .container.show-advanced {
+            max-width: 1700px;
+            grid-template-columns: 2fr 1fr 1fr;
+            grid-template-areas: 
+                "header header header"
+                "state settings advanced"
+                "logs logs logs";
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 12px 0px var(--card-shadow), 0 20px 30px rgba(0, 0, 0, 0.2);
+            border: 4px solid var(--card-border);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .page-header { grid-area: header; }
+        .card-state { grid-area: state; }
+        .card-settings { grid-area: settings; }
+        .card-advanced { grid-area: advanced; display: none; }
+        .container.show-advanced .card-advanced { display: flex; }
+        .card-logs { grid-area: logs; }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 12px;
+            background: repeating-linear-gradient(
+                45deg,
+                var(--stripe-1),
+                var(--stripe-1) 15px,
+                var(--stripe-2) 15px,
+                var(--stripe-2) 30px
+            );
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            margin-top: 5px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        h2 {
+            font-family: 'Fredoka One', cursive;
+            margin: 0;
+            color: var(--header-color);
+            font-size: 28px;
+            text-shadow: 2px 2px 0px var(--header-shadow);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--input-bg);
+            border: 4px solid var(--card-border);
+            border-radius: 40px;
+            width: 80px;
+            height: 44px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 6px 0px var(--card-shadow);
+            transition: all 0.2s;
+            z-index: 1000;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0px var(--card-shadow);
+        }
+        
+        .theme-toggle:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0px var(--card-shadow);
+        }
+
+        .theme-toggle span {
+            font-size: 16px;
+            z-index: 2;
+            pointer-events: none;
+            width: 36px;
+            text-align: center;
+        }
+
+        .theme-toggle .toggle-thumb {
+            position: absolute;
+            left: 2px;
+            width: 32px;
+            height: 32px;
+            background-color: var(--card-bg);
+            border: 3px solid var(--card-border);
+            box-sizing: border-box;
+            border-radius: 50%;
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            z-index: 1;
+        }
+
+        [data-theme="dark"] .theme-toggle .toggle-thumb {
+            transform: translateX(36px);
+        }
+
+        .terminate-btn {
+            background: none;
+            border: none;
+            color: darkred;
+            font-family: 'Fredoka One', cursive;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0;
+            transition: all 0.2s ease;
+            outline: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .term-text {
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-decoration-color: darkred;
+            transition: all 0.2s ease;
+        }
+
+        .term-icon {
+            font-size: 14px;
+            text-decoration: none;
+            font-family: sans-serif;
+        }
+
+        .terminate-btn:hover {
+            color: #ff3333;
+            text-shadow: 0 0 10px rgba(255, 51, 51, 0.6);
+        }
+
+        .terminate-btn:hover .term-text {
+            text-decoration-color: #ff3333;
+            text-decoration-thickness: 4px;
+        }
+
+        .terminate-btn:active {
+            transform: translateY(2px);
+        }
+
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            padding: 0 40px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: background 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease;
+        }
+        
+        .top-bar.scrolled {
+            background: var(--status-bg);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .top-bar-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 20px;
+            color: var(--header-color);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            margin: 0;
+            text-shadow: 1px 1px 0px var(--header-shadow);
+        }
+
+        .top-bar.scrolled .top-bar-title {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 16px;
+            color: var(--text-muted);
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 3px solid var(--card-border);
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            font-family: 'Fredoka One', cursive;
+            font-size: 16px;
+            box-sizing: border-box;
+            box-shadow: inset 0 4px 0px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            background-color: var(--input-focus);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 0px var(--card-border);
+        }
+
+        /* Checkbox Switch */
+        .switch-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 2px dashed var(--console-border);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--input-bg);
+            border: 3px solid var(--card-border);
+            border-radius: 28px;
+            transition: .3s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px; width: 16px;
+            left: 3px; bottom: 3px;
+            background-color: var(--card-border);
+            border-radius: 50%;
+            transition: .3s;
+        }
+
+        input:checked + .slider { background-color: var(--btn-success); }
+        input:checked + .slider:before { transform: translateX(24px); background-color: #fff; border-color: #fff; }
+
+        /* Buttons */
+        .btn {
+            font-family: 'Fredoka One', cursive;
+            color: white;
+            border: 3px solid var(--card-border);
+            padding: 12px 20px;
+            border-radius: 16px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.1s;
+            text-align: center;
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0px var(--card-border) !important;
+            margin-top: 4px;
+            margin-bottom: -4px;
+        }
+
+        .btn-outline {
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            text-shadow: none;
+            box-shadow: 0 4px 0px var(--card-border);
+        }
+
+        .btn-success { background-color: var(--btn-success); box-shadow: 0 4px 0px var(--btn-success-shadow); }
+        .btn-warning { background-color: var(--btn-warning); box-shadow: 0 4px 0px var(--btn-warning-shadow); }
+        .btn-danger { background-color: var(--btn-danger); box-shadow: 0 4px 0px var(--btn-danger-shadow); }
+
+        .controls-wrapper {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .controls-wrapper .btn { flex: 1; }
+
+        /* Console */
+        .console {
+            background-color: var(--console-bg);
+            border: 3px dashed var(--console-border);
+            border-radius: 18px;
+            padding: 15px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .log-entry { padding: 6px 0; border-bottom: 2px dashed rgba(0,0,0,0.05); word-break: break-all; }
+        .log-entry:last-child { border-bottom: none; }
+        
+        .log-time { color: var(--text-muted); opacity: 0.8; }
+        .log-level-INFO { color: #2563eb; }
+        .log-level-SUCCESS { color: #059669; }
+        .log-level-WARNING { color: #d97706; }
+        .log-level-ERROR { color: #dc2626; }
+        
+        [data-theme="dark"] .log-level-INFO { color: #60a5fa; }
+        [data-theme="dark"] .log-level-SUCCESS { color: #34d399; }
+        [data-theme="dark"] .log-level-WARNING { color: #fbbf24; }
+        [data-theme="dark"] .log-level-ERROR { color: #f87171; }
+
+        .status-badge {
+            background: var(--status-bg);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 3px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Fredoka One', cursive;
+        }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--text-muted); border: 2px solid var(--card-border); box-sizing: border-box; }
+        
+        .status-running { color: var(--btn-success); background: #fffbeb; }
+        [data-theme="dark"] .status-running { background: #2e1008; }
+        .status-running .status-dot { background: var(--btn-success); animation: pulse 1s infinite alternate; }
+        
+        .status-paused { color: var(--btn-warning); background: #fffbeb; }
+        [data-theme="dark"] .status-paused { background: #2e1008; }
+        .status-paused .status-dot { background: var(--btn-warning); }
+
+        @keyframes pulse { from { opacity: 0.5; transform: scale(0.9); } to { opacity: 1; transform: scale(1.1); } }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: var(--card-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            border: 3px solid var(--card-border);
+            box-shadow: 0 4px 0px var(--card-border);
+            cursor: pointer;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform: translateY(20px);
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 0px var(--card-border);
+        }
+
+        .back-to-top:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0px var(--card-border);
+        }
+
+        .reconnect-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .reconnect-overlay.visible {
+            display: flex;
+            opacity: 1;
+        }
+        .reconnect-card {
+            background: var(--card-bg);
+            border: 4px solid var(--card-border);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+            color: var(--text-main);
+            max-width: 500px;
+            text-align: center;
+        }
+
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 5px; }
+
+        .page-header {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .page-header h1 {
+            font-family: 'Fredoka One', cursive;
+            color: var(--header-color);
+            font-size: 46px;
+            margin: 0 0 15px 0;
+            text-shadow: 3px 3px 0px var(--header-shadow);
+            letter-spacing: 1px;
+        }
+        
+        .card-state { grid-area: state; align-items: center; }
+        .card-settings { grid-area: settings; }
+        .card-logs { grid-area: logs; }
+
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            gap: 2px;
+            background-color: var(--input-bg);
+            border: 3px dashed var(--console-border);
+            border-radius: 16px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .flow-branches {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .flow-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            transition: opacity 0.4s ease;
+        }
+        
+        .flow-col.dimmed {
+            opacity: 0.35;
+        }
+
+        .flow-arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 2px 0;
+            line-height: 0;
+        }
+
+        .arrow-svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .state-badge {
+            background-color: var(--card-bg);
+            border: 2px solid var(--card-border);
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            transition: all 0.3s;
+            box-shadow: 0 4px 0px var(--card-border);
+            text-align: center;
+            min-width: 120px;
+            font-size: 15px;
+        }
+
+        .badge-pink { background-color: #fbcfe8; color: #831843; border-color: #be185d; box-shadow: 0 4px 0px #be185d; }
+        .badge-blue { background-color: #bfdbfe; color: #1e3a8a; border-color: #1d4ed8; box-shadow: 0 4px 0px #1d4ed8; }
+        .badge-yellow { background-color: #fef08a; color: #713f12; border-color: #a16207; box-shadow: 0 4px 0px #a16207; }
+
+        .state-badge.active {
+            background-color: var(--btn-success) !important;
+            color: white !important;
+            border-color: var(--btn-success-shadow) !important;
+            box-shadow: 0 4px 0px var(--btn-success-shadow), 0 0 15px var(--btn-success) !important;
+            transform: translateY(-2px);
+            animation: pulse-badge 1s infinite alternate;
+        }
+
+        .state-badge.active::before {
+            content: "🔄 ";
+            display: inline-block;
+            animation: spin 2s linear infinite;
+        }
+
+        .state-badge.completed::before {
+            content: "✅ ";
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        @keyframes pulse-badge {
+            from { box-shadow: 0 4px 0px var(--btn-success-shadow), 0 0 5px var(--btn-success); }
+            to { box-shadow: 0 4px 0px var(--btn-success-shadow), 0 0 15px var(--btn-success); transform: translateY(-3px); }
+        }
+
+        @media (max-width: 900px) {
+            .container { 
+                grid-template-columns: 1fr;
+                grid-template-areas: 
+                    "header"
+                    "state"
+                    "settings"
+                    "logs";
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar" id="topBar">
+        <h2 class="top-bar-title">🍪 CookieRun Auto-Bot</h2>
+        <button class="terminate-btn" onclick="terminateBot()">
+            <span class="term-text">Terminate</span> 
+            <svg class="term-icon-svg" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="4" stroke-linecap="round" style="margin-top: 2px;">
+                <line x1="4" y1="4" x2="20" y2="20"></line>
+                <line x1="20" y1="4" x2="4" y2="20"></line>
+            </svg>
+        </button>
+    </div>
+
+    <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+        <div class="toggle-thumb"></div>
+        <span>☀️</span>
+        <span>🌙</span>
+    </div>
+
+    <div class="container">
+        <div class="card page-header" style="background: linear-gradient(135deg, var(--card-bg) 0%, rgba(0,0,0,0.05) 100%); padding-top: 30px; padding-bottom: 30px;">
+            <h1 id="mainTitle" style="margin-bottom: 10px;">🍪 CookieRun Auto-Bot 🏃‍♂️</h1>
+            <p style="margin: 0; font-size: 18px; opacity: 0.8; font-weight: 600;">Automate your Cookie Run gameplay, buy buffs, send gifts, and run macros effortlessly.</p>
+        </div>
+
+        <!-- State Information Panel -->
+        <div class="card card-state">
+            <div class="header-row" style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0;">🔍 Bot State</h2>
+                <div id="botStats" style="display: flex; align-items: center; gap: 20px; font-family: 'Quicksand', sans-serif; font-size: 14px; text-align: right;">
+                    <div>
+                        <div><span style="opacity: 0.7;">Run Count:</span> <strong id="statRuns" style="color: var(--accent-color);">0</strong></div>
+                        <div><span style="opacity: 0.7;">Total Time:</span> <strong id="statTotalTime" style="color: var(--accent-color);">00:00:00</strong></div>
+                        <div><span style="opacity: 0.7;">Current Loop:</span> <strong id="statLoopTime" style="color: var(--accent-color);">00:00</strong></div>
+                    </div>
+                    <div id="currentStepIndicator" style="display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 2px dashed var(--console-border); padding-left: 20px;">
+                        <span class="state-badge" id="indicatorBadge" style="margin: 0; box-shadow: 0 4px 0 var(--shadow-color);">Stopped</span>
+                        <div style="margin-top: 5px; font-weight: bold; font-size: 12px; color: var(--accent-color);">⏱ <span id="indicatorTime">00:00</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flow-container" style="position: relative; padding: 60px 50px 40px 50px;">
+                <svg id="flow-svg-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto" markerUnits="userSpaceOnUse">
+                            <polygon points="0 0, 14 6, 0 12" fill="var(--card-border)" />
+                        </marker>
+                    </defs>
+                    <path id="path-branch" fill="none" stroke="var(--card-border)" stroke-width="3" marker-end="url(#arrowhead)" stroke-linejoin="round" />
+                    <path id="path-return-left" fill="none" stroke="var(--card-border)" stroke-width="3" marker-end="url(#arrowhead)" stroke-linejoin="round" />
+                    <path id="path-return-right" fill="none" stroke="var(--card-border)" stroke-width="3" marker-end="url(#arrowhead)" stroke-linejoin="round" />
+                </svg>
+                
+                <div class="flow-branches" style="margin-top: 10px; width: 100%;">
+                    <!-- Left Branch -->
+                    <div class="flow-col" id="branch-main">
+                        <span class="state-badge badge-pink" id="state-WAIT_MAIN_MENU">Main Menu</span>
+                        <div class="flow-arrow"><svg class="arrow-svg" viewBox="0 0 24 24"><line x1="12" y1="0" x2="12" y2="18" stroke="var(--card-border)" stroke-width="3"/><polygon points="6,16 18,16 12,24" fill="var(--card-border)"/></svg></div>
+                        <span class="state-badge" id="state-PREPARE_PLAY">Prepare</span>
+                        <div class="flow-arrow"><svg class="arrow-svg" viewBox="0 0 24 24"><line x1="12" y1="0" x2="12" y2="18" stroke="var(--card-border)" stroke-width="3"/><polygon points="6,16 18,16 12,24" fill="var(--card-border)"/></svg></div>
+                        <span class="state-badge" id="state-BUY_BUFFS">Buy Buffs</span>
+                        <div class="flow-arrow"><svg class="arrow-svg" viewBox="0 0 24 24"><line x1="12" y1="0" x2="12" y2="18" stroke="var(--card-border)" stroke-width="3"/><polygon points="6,16 18,16 12,24" fill="var(--card-border)"/></svg></div>
+                        <span class="state-badge" id="state-MULTI_BUY">Multi Buy</span>
+                        <div class="flow-arrow"><svg class="arrow-svg" viewBox="0 0 24 24"><line x1="12" y1="0" x2="12" y2="18" stroke="var(--card-border)" stroke-width="3"/><polygon points="6,16 18,16 12,24" fill="var(--card-border)"/></svg></div>
+                        <span class="state-badge" id="state-START_GAME">Start Game</span>
+                        <div class="flow-arrow"><svg class="arrow-svg" viewBox="0 0 24 24"><line x1="12" y1="0" x2="12" y2="18" stroke="var(--card-border)" stroke-width="3"/><polygon points="6,16 18,16 12,24" fill="var(--card-border)"/></svg></div>
+                        <span class="state-badge" id="state-WAIT_START_BOOST">Start Boost</span>
+                        <div class="flow-arrow"><svg class="arrow-svg" viewBox="0 0 24 24"><line x1="12" y1="0" x2="12" y2="18" stroke="var(--card-border)" stroke-width="3"/><polygon points="6,16 18,16 12,24" fill="var(--card-border)"/></svg></div>
+                        <span class="state-badge badge-blue" id="state-RUN_MACRO">Run Macro</span>
+                        <div class="flow-arrow"><svg class="arrow-svg" viewBox="0 0 24 24"><line x1="12" y1="0" x2="12" y2="18" stroke="var(--card-border)" stroke-width="3"/><polygon points="6,16 18,16 12,24" fill="var(--card-border)"/></svg></div>
+                        <span class="state-badge" id="state-WAIT_RESULT">Wait Result</span>
+                        <div class="flow-arrow"><svg class="arrow-svg" viewBox="0 0 24 24"><line x1="12" y1="0" x2="12" y2="18" stroke="var(--card-border)" stroke-width="3"/><polygon points="6,16 18,16 12,24" fill="var(--card-border)"/></svg></div>
+                        <span class="state-badge" id="state-CLOSE_RESULT">Close Result</span>
+                    </div>
+                    
+                    <!-- Right Branch -->
+                    <div class="flow-col" id="branch-gift">
+                        <span class="state-badge badge-yellow" id="state-SEND_GIFTS" style="position: relative;">
+                            Send Gifts
+                            <div id="giftCountdownLabel" style="position: absolute; top: 110%; left: 50%; transform: translateX(-50%); font-size: 11px; background: rgba(0,0,0,0.6); color: white; padding: 2px 6px; border-radius: 4px; white-space: nowrap; display: none;">Next: 00:00</div>
+                        </span>
+                        <div class="flow-arrow"><svg class="arrow-svg" viewBox="0 0 24 24"><line x1="12" y1="0" x2="12" y2="18" stroke="var(--card-border)" stroke-width="3"/><polygon points="6,16 18,16 12,24" fill="var(--card-border)"/></svg></div>
+                        <span class="state-badge" id="state-OPEN_MAIL_MENU">Open Mail</span>
+                        <div class="flow-arrow"><svg class="arrow-svg" viewBox="0 0 24 24"><line x1="12" y1="0" x2="12" y2="18" stroke="var(--card-border)" stroke-width="3"/><polygon points="6,16 18,16 12,24" fill="var(--card-border)"/></svg></div>
+                        <span class="state-badge" id="state-WAIT_MAIL_TAB">Wait Mail</span>
+                        <div class="flow-arrow"><svg class="arrow-svg" viewBox="0 0 24 24"><line x1="12" y1="0" x2="12" y2="18" stroke="var(--card-border)" stroke-width="3"/><polygon points="6,16 18,16 12,24" fill="var(--card-border)"/></svg></div>
+                        <span class="state-badge" id="state-RECEIVE_GIFTS">Receive</span>
+                        <div class="flow-arrow"><svg class="arrow-svg" viewBox="0 0 24 24"><line x1="12" y1="0" x2="12" y2="18" stroke="var(--card-border)" stroke-width="3"/><polygon points="6,16 18,16 12,24" fill="var(--card-border)"/></svg></div>
+                        <span class="state-badge" id="state-CLOSE_MAIL">Close Mail</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Panel -->
+        <div class="card card-settings">
+            <div class="header-row">
+                <h2>🍪 Settings</h2>
+                <button class="btn btn-outline" style="padding: 5px 15px; font-size: 14px; box-shadow: 0 2px 0 var(--shadow-color);" onclick="document.querySelector('.container').classList.toggle('show-advanced')">
+                    Advanced ⚙️
+                </button>
+            </div>
+
+            <div class="form-group">
+                <label for="emulatorInstance">📱 MuMu Player Instance</label>
+                <select id="emulatorInstance">
+                    <option value="">Loading instances...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="botMode">🎮 Bot Mode</label>
+                <select id="botMode">
+                    <option value="default">Non-Fast Start (Default)</option>
+                    <option value="fast_start">Fast Start</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="adbSerial">🔌 ADB Serial override</label>
+                <input type="text" id="adbSerial" placeholder="e.g. 127.0.0.1:16384">
+            </div>
+
+            <div style="margin-top: 5px;">
+                <div class="switch-group" style="border-bottom: none;">
+                    <label for="skipBuffs">🛒 Skip Buy Buffs Phase</label>
+                    <label class="switch">
+                        <input type="checkbox" id="skipBuffs">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="switch-group" style="margin-bottom: 5px; border-bottom: none;">
+                    <label for="skipMacro">🏃 Skip Macro Execution</label>
+                    <label class="switch">
+                        <input type="checkbox" id="skipMacro">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <hr style="border: 0; border-top: 2px dashed var(--console-border); margin: 15px 0;">
+                
+                <div class="switch-group" style="margin-bottom: 15px; border-bottom: none;">
+                    <label for="showLiveLogs">📝 Show Live Logs</label>
+                    <label class="switch">
+                        <input type="checkbox" id="showLiveLogs" onchange="document.getElementById('logCard').style.display = this.checked ? 'flex' : 'none'; localStorage.setItem('showLiveLogs', this.checked);">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+
+
+            <button class="btn btn-outline" id="saveConfigBtn" onclick="saveConfig()">
+                💾 Save Configuration
+            </button>
+
+            <div class="controls-wrapper">
+                <button class="btn btn-success" id="startBtn" onclick="startBot()">
+                    ▶ Start
+                </button>
+                <button class="btn btn-warning" id="pauseBtn" onclick="togglePause()" style="display: none;">
+                    ⏸ Pause
+                </button>
+                <button class="btn btn-danger" id="stopBtn" onclick="stopBot()" style="display: none;">
+                    ⏹ Stop
+                </button>
+            </div>
+            
+            <div style="text-align: center; margin-top: auto; padding-top: 15px;">
+                <span onclick="resetBasicSettings()" style="cursor: pointer; opacity: 0.6; text-decoration: underline; font-size: 12px; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">Reset Basic Defaults</span>
+            </div>
+        </div>
+        
+        <!-- Advanced Configuration Panel -->
+        <div class="card card-advanced">
+            <div class="header-row">
+                <h2>⚙️ Advanced</h2>
+                <button class="btn btn-outline" style="padding: 5px 10px; font-size: 14px;" onclick="document.querySelector('.container').classList.remove('show-advanced')">
+                    ❌
+                </button>
+            </div>
+            
+            <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right: 5px;">
+                <h3 style="margin: 0; color: var(--accent-color); font-weight: 900; text-decoration: underline;">Timing & Delays</h3>
+                
+                <div class="form-group">
+                    <label>Click Delay (min/max sec) <span style="opacity: 0.6; font-size: 11px; font-weight: normal;">(Default: 0.01 / 0.05)</span></label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="clickMin" step="0.01" style="width: 50%;">
+                        <input type="number" id="clickMax" step="0.01" style="width: 50%;">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Step Delay (min/max sec) <span style="opacity: 0.6; font-size: 11px; font-weight: normal;">(Default: 0.5 / 1.0)</span></label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="stepMin" step="0.1" style="width: 50%;">
+                        <input type="number" id="stepMax" step="0.1" style="width: 50%;">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Gift Interval (minutes) <span style="opacity: 0.6; font-size: 11px; font-weight: normal;">(Default: 60)</span></label>
+                    <input type="number" id="giftInterval" step="1">
+                </div>
+
+                <h3 style="margin: 0; color: var(--accent-color); font-weight: 900; text-decoration: underline;">Bot Behavior</h3>
+                
+                <div class="form-group">
+                    <label>Match Threshold (0.0 - 1.0) <span style="opacity: 0.6; font-size: 11px; font-weight: normal;">(Default: 0.69)</span></label>
+                    <input type="number" id="matchThreshold" step="0.01">
+                </div>
+                
+                <div class="form-group">
+                    <label>Max Retries Per Step <span style="opacity: 0.6; font-size: 11px; font-weight: normal;">(Default: 3)</span></label>
+                    <input type="number" id="maxRetries" step="1">
+                </div>
+                
+                <div class="switch-group" style="border-bottom: none;">
+                    <label>Restart Loop on Failure <span style="opacity: 0.6; font-size: 11px; font-weight: normal;">(Default: On)</span></label>
+                    <label class="switch">
+                        <input type="checkbox" id="restartOnFailure">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <h3 style="margin: 0; color: var(--accent-color); font-weight: 900; text-decoration: underline;">System & Hotkeys</h3>
+                
+                <div class="form-group">
+                    <label>Start/Stop Hotkey <span style="opacity: 0.6; font-size: 11px; font-weight: normal;">(Default: F7)</span></label>
+                    <input type="text" id="hotkey">
+                </div>
+                
+                <div class="form-group">
+                    <label>Pause/Resume Hotkey <span style="opacity: 0.6; font-size: 11px; font-weight: normal;">(Default: F8)</span></label>
+                    <input type="text" id="pauseHotkey">
+                </div>
+                
+                <div class="switch-group" style="border-bottom: none;">
+                    <label>Debug Logging <span style="opacity: 0.6; font-size: 11px; font-weight: normal;">(Default: Off)</span></label>
+                    <label class="switch">
+                        <input type="checkbox" id="debugLog">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="switch-group" style="border-bottom: none;">
+                    <label>Show Warnings <span style="opacity: 0.6; font-size: 11px; font-weight: normal;">(Default: Off)</span></label>
+                    <label class="switch">
+                        <input type="checkbox" id="showWarnings">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+            </div>
+
+            <div style="text-align: center; margin-top: auto; padding-top: 15px;">
+                <span onclick="resetAdvancedSettings()" style="cursor: pointer; opacity: 0.6; text-decoration: underline; font-size: 12px; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">Reset Advanced Defaults</span>
+            </div>
+        </div>
+
+        <!-- Live Log Panel -->
+        <div class="card card-logs" id="logCard" style="display: none;">
+            <div class="header-row">
+                <h2>📝 Live Logs</h2>
+                <button class="btn btn-outline" style="padding: 6px 12px; font-size: 14px;" onclick="document.getElementById('consoleOutput').innerHTML=''">Clear</button>
+            </div>
+            <div class="console" id="consoleOutput">
+                <div class="log-entry"><span class="log-time">[System]</span> Waiting for connection...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="reconnect-overlay" id="reconnectOverlay">
+        <div class="reconnect-card">
+            <h2 style="font-size: 32px; margin-top: 0;">🔌 Connection Lost</h2>
+            <p style="font-size: 18px; opacity: 0.8; margin-bottom: 30px;">The background server has disconnected. If it was closed, you need to run <strong>run.bat</strong> again.</p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button class="btn btn-outline" style="padding: 10px 20px; font-size: 16px; opacity: 0.7; cursor: default;">Reconnecting...</button>
+                <button class="btn btn-success" style="padding: 10px 20px; font-size: 16px;" onclick="window.location.reload()">Reload Page</button>
+            </div>
+        </div>
+    </div>
+
+    <button class="back-to-top" id="backToTopBtn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Go to top">
+        ⬆️
+    </button>
+
+    <script>
+        let currentConfig = {};
+
+        // Theme & Preferences Setup
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        // Restore Show Live Logs preference
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedShowLogs = localStorage.getItem('showLiveLogs');
+            if (savedShowLogs !== null) {
+                const isShowing = savedShowLogs === 'true';
+                const checkbox = document.getElementById('showLiveLogs');
+                const logCard = document.getElementById('logCard');
+                if (checkbox && logCard) {
+                    checkbox.checked = isShowing;
+                    logCard.style.display = isShowing ? 'flex' : 'none';
+                }
+            }
+        });
+
+        function toggleTheme() {
+            const body = document.documentElement;
+            const current = body.getAttribute('data-theme');
+            const target = current === 'dark' ? 'light' : 'dark';
+            body.setAttribute('data-theme', target);
+            localStorage.setItem('theme', target);
+        }
+
+        window.addEventListener('scroll', () => {
+            const topBar = document.getElementById('topBar');
+            const title = document.getElementById('mainTitle');
+            const backToTop = document.getElementById('backToTopBtn');
+            
+            if (window.scrollY > 300) {
+                if (backToTop) backToTop.classList.add('visible');
+            } else {
+                if (backToTop) backToTop.classList.remove('visible');
+            }
+            
+            if (topBar && title) {
+                const titleRect = title.getBoundingClientRect();
+                // If main title is scrolled out of view (top < 0)
+                if (titleRect.bottom < 60) {
+                    topBar.classList.add('scrolled');
+                } else {
+                    topBar.classList.remove('scrolled');
+                }
+            }
+        });
+
+        function drawFlowLines() {
+            const mainMenu = document.getElementById('state-WAIT_MAIN_MENU');
+            const prepare = document.getElementById('state-PREPARE_PLAY');
+            const sendGifts = document.getElementById('state-SEND_GIFTS');
+            const closeResult = document.getElementById('state-CLOSE_RESULT');
+            const closeMail = document.getElementById('state-CLOSE_MAIL');
+            const branchGift = document.getElementById('branch-gift');
+            const svg = document.getElementById('flow-svg-overlay');
+            
+            if (!mainMenu || !sendGifts || !closeResult || !closeMail || !svg) return;
+            
+            if (prepare && branchGift && mainMenu) {
+                const mmRect = mainMenu.getBoundingClientRect();
+                const prepareRect = prepare.getBoundingClientRect();
+                branchGift.style.marginTop = (prepareRect.top - mmRect.top) + 'px';
+            }
+            
+            const svgRect = svg.getBoundingClientRect();
+            
+            function getCenter(el) {
+                const rect = el.getBoundingClientRect();
+                return {
+                    x: rect.left + rect.width/2 - svgRect.left,
+                    y: rect.top + rect.height/2 - svgRect.top,
+                    top: rect.top - svgRect.top,
+                    bottom: rect.bottom - svgRect.top,
+                    left: rect.left - svgRect.left,
+                    right: rect.right - svgRect.left
+                };
+            }
+            
+            const mm = getCenter(mainMenu);
+            const sg = getCenter(sendGifts);
+            const cr = getCenter(closeResult);
+            const cm = getCenter(closeMail);
+            
+            // Main Menu to Send Gifts
+            const branchPath = `M ${mm.right} ${mm.y} L ${sg.x} ${mm.y} L ${sg.x} ${sg.top - 5}`;
+            document.getElementById('path-branch').setAttribute('d', branchPath);
+            
+            // Close Result to Main Menu
+            // 30 pixels to the left of the leftmost edge between cr and mm
+            const leftX = Math.min(cr.left, mm.left) - 30;
+            const leftReturn = `M ${cr.left} ${cr.y} L ${leftX} ${cr.y} L ${leftX} ${mm.y} L ${mm.left - 5} ${mm.y}`;
+            document.getElementById('path-return-left').setAttribute('d', leftReturn);
+            
+            // Close Mail to Main Menu
+            // 30 pixels to the right of cm
+            const rightX = cm.right + 30;
+            // route 60 pixels above mm
+            const topY = mm.top - 35;
+            const rightReturn = `M ${cm.right} ${cm.y} L ${rightX} ${cm.y} L ${rightX} ${topY} L ${mm.x} ${topY} L ${mm.x} ${mm.top - 5}`;
+            document.getElementById('path-return-right').setAttribute('d', rightReturn);
+        }
+        
+        const flowContainer = document.querySelector('.flow-container');
+        if (flowContainer) {
+            const resizeObserver = new ResizeObserver(() => {
+                requestAnimationFrame(drawFlowLines);
+            });
+            resizeObserver.observe(flowContainer);
+        }
+
+        window.addEventListener('resize', drawFlowLines);
+        if (document.fonts) {
+            document.fonts.ready.then(drawFlowLines);
+        }
+        setTimeout(drawFlowLines, 100);
+        
+        function updateFlowchartVisibility() {
+            const skipBuffs = document.getElementById('skipBuffs').checked;
+            const skipMacro = document.getElementById('skipMacro').checked;
+            
+            const buyBuffsBadge = document.getElementById('state-BUY_BUFFS');
+            const runMacroBadge = document.getElementById('state-RUN_MACRO');
+            
+            if (buyBuffsBadge) {
+                buyBuffsBadge.style.display = skipBuffs ? 'none' : '';
+                if (buyBuffsBadge.nextElementSibling && buyBuffsBadge.nextElementSibling.classList.contains('flow-arrow')) {
+                    buyBuffsBadge.nextElementSibling.style.display = skipBuffs ? 'none' : '';
+                }
+            }
+            
+            if (runMacroBadge) {
+                runMacroBadge.style.display = skipMacro ? 'none' : '';
+                if (runMacroBadge.nextElementSibling && runMacroBadge.nextElementSibling.classList.contains('flow-arrow')) {
+                    runMacroBadge.nextElementSibling.style.display = skipMacro ? 'none' : '';
+                }
+            }
+            
+            drawFlowLines();
+        }
+        
+        document.getElementById('skipBuffs').addEventListener('change', updateFlowchartVisibility);
+        document.getElementById('skipMacro').addEventListener('change', updateFlowchartVisibility);
+        
+        async function loadInstances() {
+            try {
+                const res = await fetch('/api/instances');
+                const instances = await res.json();
+                const select = document.getElementById('emulatorInstance');
+                select.innerHTML = '';
+                
+                if (instances.length === 0) {
+                    select.innerHTML = '<option value="">No instances found</option>';
+                    return;
+                }
+                
+                instances.forEach(inst => {
+                    const option = document.createElement('option');
+                    option.value = inst.title;
+                    option.textContent = `${inst.title} (PID: ${inst.pid})`;
+                    select.appendChild(option);
+                });
+                
+                if (currentConfig.emulator_window_title) {
+                    select.value = currentConfig.emulator_window_title;
+                }
+            } catch (e) {
+                console.error("Failed to load instances", e);
+            }
+        }
+
+        async function loadConfig() {
+            try {
+                const res = await fetch('/api/config');
+                currentConfig = await res.json();
+                
+                document.getElementById('botMode').value = currentConfig.bot_mode || 'default';
+                document.getElementById('skipMacro').checked = currentConfig.skip_macro !== false;
+                document.getElementById('skipBuffs').checked = currentConfig.skip_buy_buffs !== false;
+                
+                if(currentConfig.adb && currentConfig.adb.serial) {
+                    document.getElementById('adbSerial').value = currentConfig.adb.serial;
+                }
+                
+                document.getElementById('clickMin').value = currentConfig.delays?.click_min || 0.01;
+                document.getElementById('clickMax').value = currentConfig.delays?.click_max || 0.05;
+                document.getElementById('stepMin').value = currentConfig.delays?.between_steps_min || 0.5;
+                document.getElementById('stepMax').value = currentConfig.delays?.between_steps_max || 1.0;
+                document.getElementById('giftInterval').value = currentConfig.gift_interval_minutes || 60;
+                document.getElementById('matchThreshold').value = currentConfig.match_threshold || 0.69;
+                document.getElementById('maxRetries').value = currentConfig.retry?.max_per_step || 3;
+                document.getElementById('restartOnFailure').checked = currentConfig.retry?.restart_on_failure !== false;
+                document.getElementById('hotkey').value = currentConfig.hotkey || 'F7';
+                document.getElementById('pauseHotkey').value = currentConfig.pause_hotkey || 'F8';
+                document.getElementById('debugLog').checked = currentConfig.logging?.debug === true;
+                document.getElementById('showWarnings').checked = currentConfig.logging?.show_warnings === true;
+                
+                await loadInstances();
+                updateFlowchartVisibility();
+            } catch (e) {
+                console.error("Failed to load config", e);
+            }
+        }
+
+        async function saveConfig() {
+            const btn = document.getElementById('saveConfigBtn');
+            
+            currentConfig.emulator_window_title = document.getElementById('emulatorInstance').value;
+            currentConfig.bot_mode = document.getElementById('botMode').value;
+            currentConfig.skip_macro = document.getElementById('skipMacro').checked;
+            currentConfig.skip_buy_buffs = document.getElementById('skipBuffs').checked;
+            
+            const serial = document.getElementById('adbSerial').value;
+            if(serial) {
+                if(!currentConfig.adb) currentConfig.adb = {};
+                currentConfig.adb.serial = serial;
+            } else if (currentConfig.adb) {
+                delete currentConfig.adb.serial;
+            }
+
+            // Save Advanced Settings
+            if (!currentConfig.delays) currentConfig.delays = {};
+            currentConfig.delays.click_min = parseFloat(document.getElementById('clickMin').value);
+            currentConfig.delays.click_max = parseFloat(document.getElementById('clickMax').value);
+            currentConfig.delays.between_steps_min = parseFloat(document.getElementById('stepMin').value);
+            currentConfig.delays.between_steps_max = parseFloat(document.getElementById('stepMax').value);
+
+            currentConfig.gift_interval_minutes = parseInt(document.getElementById('giftInterval').value);
+            currentConfig.match_threshold = parseFloat(document.getElementById('matchThreshold').value);
+
+            if (!currentConfig.retry) currentConfig.retry = {};
+            currentConfig.retry.max_per_step = parseInt(document.getElementById('maxRetries').value);
+            currentConfig.retry.restart_on_failure = document.getElementById('restartOnFailure').checked;
+
+            currentConfig.hotkey = document.getElementById('hotkey').value;
+            currentConfig.pause_hotkey = document.getElementById('pauseHotkey').value;
+
+            if (!currentConfig.logging) currentConfig.logging = {};
+            currentConfig.logging.debug = document.getElementById('debugLog').checked;
+            currentConfig.logging.show_warnings = document.getElementById('showWarnings').checked;
+
+            try {
+                await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ config: currentConfig })
+                });
+                
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Saved!';
+                setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                updateStatusUI(data.running, data.paused, data.current_state, data);
+            } catch (e) {
+                console.error("Status check failed", e);
+            }
+        }
+
+        function formatTime(seconds) {
+            if (!seconds) return "00:00";
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            if (h > 0) {
+                return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function resetBasicSettings() {
+            if (confirm("Are you sure you want to reset Basic Settings to defaults?")) {
+                document.getElementById('botMode').value = 'default';
+                document.getElementById('adbSerial').value = '';
+                document.getElementById('skipBuffs').checked = true;
+                document.getElementById('skipMacro').checked = true;
+            }
+        }
+
+        function resetAdvancedSettings() {
+            if (confirm("Are you sure you want to reset Advanced Settings to defaults?")) {
+                document.getElementById('clickMin').value = '0.01';
+                document.getElementById('clickMax').value = '0.05';
+                document.getElementById('stepMin').value = '0.5';
+                document.getElementById('stepMax').value = '1.0';
+                document.getElementById('giftInterval').value = '60';
+                document.getElementById('matchThreshold').value = '0.69';
+                document.getElementById('maxRetries').value = '3';
+                document.getElementById('restartOnFailure').checked = true;
+                document.getElementById('hotkey').value = 'F7';
+                document.getElementById('pauseHotkey').value = 'F8';
+                document.getElementById('debugLog').checked = false;
+                document.getElementById('showWarnings').checked = false;
+            }
+        }
+
+        let completedSteps = new Set();
+        let lastState = null;
+
+        function updateStatusUI(isRunning, isPaused = false, currentState = "STOPPED", data = null) {
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const stepIndicator = document.getElementById('currentStepIndicator');
+
+            if (data) {
+                document.getElementById('statRuns').textContent = data.session_count || 0;
+                document.getElementById('statTotalTime').textContent = formatTime(data.total_time || 0);
+                document.getElementById('statLoopTime').textContent = formatTime(data.current_loop_time || 0);
+                
+                if (isRunning && currentState && currentState !== "STOPPED") {
+                    if (lastState === null) {
+                        const giftStates = ["SEND_GIFTS", "OPEN_MAIL_MENU", "WAIT_MAIL_TAB", "RECEIVE_GIFTS", "CLOSE_MAIL"];
+                        const mainStates = ["WAIT_MAIN_MENU", "PREPARE_PLAY", "BUY_BUFFS", "MULTI_BUY", "START_GAME", "WAIT_START_BOOST", "RUN_MACRO", "WAIT_RESULT", "CLOSE_RESULT"];
+                        
+                        let sIdx = mainStates.indexOf(currentState);
+                        if (sIdx > -1) {
+                            for(let i = 0; i < sIdx; i++) completedSteps.add(mainStates[i]);
+                        } else {
+                            sIdx = giftStates.indexOf(currentState);
+                            if (sIdx > -1) {
+                                completedSteps.add("WAIT_MAIN_MENU");
+                                for(let i = 0; i < sIdx; i++) completedSteps.add(giftStates[i]);
+                            }
+                        }
+                    } else if (lastState !== currentState && lastState !== "STOPPED") {
+                        completedSteps.add(lastState);
+                    }
+                    
+                    if (currentState === 'WAIT_MAIN_MENU' && lastState !== 'WAIT_MAIN_MENU') {
+                        completedSteps.clear();
+                    }
+                    
+                    lastState = currentState;
+
+                    document.querySelectorAll('.state-badge').forEach(b => {
+                        if (b.id === 'indicatorBadge') return; 
+                        b.classList.remove('active', 'completed');
+                        const stateId = b.id.replace('state-', '');
+                        if (stateId === currentState) {
+                            b.classList.add('active');
+                        } else if (completedSteps.has(stateId)) {
+                            b.classList.add('completed');
+                        }
+                    });
+
+                    stepIndicator.style.display = 'flex';
+                    const flowBadge = document.getElementById(`state-${currentState}`);
+                    const indBadge = document.getElementById('indicatorBadge');
+                    if (flowBadge && indBadge) {
+                        indBadge.textContent = Array.from(flowBadge.childNodes).find(n => n.nodeType === 3)?.textContent.trim() || flowBadge.textContent;
+                        indBadge.className = flowBadge.className;
+                        indBadge.classList.add('active'); 
+                    }
+                    document.getElementById('indicatorTime').textContent = formatTime(data.current_step_time || 0);
+
+                    const giftLabel = document.getElementById('giftCountdownLabel');
+                    if (giftLabel) {
+                        giftLabel.style.display = 'block';
+                        giftLabel.textContent = `Next: ${formatTime(data.gift_countdown || 0)}`;
+                    }
+                } else {
+                    const indBadge = document.getElementById('indicatorBadge');
+                    if (indBadge) {
+                        indBadge.textContent = 'Stopped';
+                        indBadge.className = 'state-badge';
+                    }
+                    document.getElementById('indicatorTime').textContent = '00:00';
+                    
+                    const giftLabel = document.getElementById('giftCountdownLabel');
+                    if (giftLabel) giftLabel.style.display = 'none';
+                    completedSteps.clear();
+                    lastState = null;
+                    
+                    document.querySelectorAll('.state-badge').forEach(b => {
+                        b.classList.remove('active', 'completed');
+                    });
+                }
+            }
+
+            if (isRunning) {
+                if (isPaused) {
+                    pauseBtn.innerHTML = '▶ Resume';
+                } else {
+                    pauseBtn.innerHTML = '⏸ Pause';
+                }
+                startBtn.style.display = 'none';
+                pauseBtn.style.display = 'flex';
+                stopBtn.style.display = 'flex';
+            } else {
+                startBtn.style.display = 'flex';
+                pauseBtn.style.display = 'none';
+                stopBtn.style.display = 'none';
+            }
+
+            document.querySelectorAll('.state-badge').forEach(b => b.classList.remove('active'));
+            
+            const mainBranch = document.getElementById('branch-main');
+            const giftBranch = document.getElementById('branch-gift');
+            
+            if (mainBranch && giftBranch) {
+                mainBranch.classList.remove('dimmed');
+                giftBranch.classList.remove('dimmed');
+            }
+
+            if(isRunning && !isPaused && currentState && currentState !== "STOPPED") {
+                const activeBadge = document.getElementById(`state-${currentState}`);
+                if(activeBadge) {
+                    activeBadge.classList.add('active');
+                }
+                const indBadge = document.getElementById('indicatorBadge');
+                if(indBadge) {
+                    indBadge.classList.add('active');
+                }
+                
+                if (mainBranch && giftBranch) {
+                    const giftStates = ["SEND_GIFTS", "OPEN_MAIL_MENU", "WAIT_MAIL_TAB", "RECEIVE_GIFTS", "CLOSE_MAIL"];
+                    const mainStates = ["PREPARE_PLAY", "BUY_BUFFS", "MULTI_BUY", "START_GAME", "WAIT_START_BOOST", "RUN_MACRO", "WAIT_RESULT", "CLOSE_RESULT"];
+                    
+                    if (giftStates.includes(currentState)) {
+                        mainBranch.classList.add('dimmed');
+                    } else if (mainStates.includes(currentState)) {
+                        giftBranch.classList.add('dimmed');
+                    }
+                }
+            }
+        }
+
+        async function startBot() {
+            await saveConfig();
+            try {
+                await fetch('/api/start', { method: 'POST' });
+                fetchStatus();
+            } catch (e) {
+                console.error("Start failed", e);
+            }
+        }
+
+        async function stopBot() {
+            try {
+                await fetch('/api/stop', { method: 'POST' });
+                fetchStatus();
+            } catch (e) {
+                console.error("Stop failed", e);
+            }
+        }
+
+        async function togglePause() {
+            const pauseBtn = document.getElementById('pauseBtn');
+            const isPausing = pauseBtn.innerHTML.includes('Pause');
+            try {
+                if (isPausing) {
+                    await fetch('/api/pause', { method: 'POST' });
+                    fetchStatus();
+                } else {
+                    await fetch('/api/resume', { method: 'POST' });
+                    fetchStatus();
+                }
+            } catch (e) {
+                console.error("Toggle pause failed", e);
+            }
+        }
+
+        async function terminateBot() {
+            if(confirm("Are you sure you want to completely terminate the Auto-Bot? This will close the application.")) {
+                try {
+                    const res = await fetch('/api/terminate', { method: 'POST' });
+                    if (res.ok) {
+                        document.body.innerHTML = '<div style="display:flex; flex-direction: column; height:100vh; justify-content:center; align-items:center; text-align:center;"><h2 style="font-size: 40px; margin-bottom: 20px;">🛑 Bot Terminated</h2><p style="font-size: 20px; opacity: 0.8; font-family: \'Quicksand\', sans-serif; font-weight: bold;">The background server has been closed.<br>You can now safely close this window.</p></div>';
+                    } else {
+                        alert("Termination failed! Please make sure you restarted 'python main.py' so the server has the newest update.");
+                    }
+                } catch(e) {
+                    console.error("Termination failed", e);
+                    alert("Network error: Server might already be dead, or you need to restart 'python main.py'.");
+                }
+            }
+        }
+
+        function setupWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const ws = new WebSocket(`${protocol}//${window.location.host}/ws/logs`);
+            const consoleOut = document.getElementById('consoleOutput');
+
+            ws.onopen = () => {
+                const overlay = document.getElementById('reconnectOverlay');
+                if (overlay) overlay.classList.remove('visible');
+                appendLog({timestamp: new Date().toLocaleTimeString(), level: 'INFO', msg: 'Connected to Log Stream'});
+            };
+
+            ws.onmessage = (event) => {
+                const log = JSON.parse(event.data);
+                appendLog(log);
+            };
+
+            ws.onclose = () => {
+                const overlay = document.getElementById('reconnectOverlay');
+                if (overlay) overlay.classList.add('visible');
+                appendLog({timestamp: new Date().toLocaleTimeString(), level: 'WARNING', msg: 'Disconnected from Log Stream. Reconnecting...'});
+                setTimeout(setupWebSocket, 3000);
+            };
+            
+            function appendLog(log) {
+                const div = document.createElement('div');
+                div.className = 'log-entry';
+                
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'log-time';
+                timeSpan.textContent = `[${log.timestamp}] `;
+                
+                const levelSpan = document.createElement('span');
+                levelSpan.className = `log-level-${log.level}`;
+                levelSpan.textContent = `[${log.level}] `;
+                
+                const msgSpan = document.createElement('span');
+                const cleanMsg = log.msg.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, '');
+                msgSpan.textContent = cleanMsg;
+                
+                div.appendChild(timeSpan);
+                div.appendChild(levelSpan);
+                div.appendChild(msgSpan);
+                
+                consoleOut.appendChild(div);
+                
+                if (consoleOut.scrollHeight - consoleOut.scrollTop < 600) {
+                    consoleOut.scrollTop = consoleOut.scrollHeight;
+                }
+                
+                while(consoleOut.children.length > 500) {
+                    consoleOut.removeChild(consoleOut.firstChild);
+                }
+            }
+        }
+
+        function attachHotkeyListener(inputId) {
+            const el = document.getElementById(inputId);
+            if (!el) return;
+            
+            el.addEventListener('keydown', (e) => {
+                e.preventDefault(); 
+                
+                let keys = [];
+                if (e.ctrlKey) keys.push('ctrl');
+                if (e.altKey) keys.push('alt');
+                if (e.shiftKey) keys.push('shift');
+                if (e.metaKey) keys.push('windows');
+                
+                if (['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) {
+                    el.value = keys.join('+') + '+...';
+                    return;
+                }
+                
+                let key = e.key.toLowerCase();
+                if (key === ' ') key = 'space';
+                else if (key === 'escape') key = 'esc';
+                else if (key === 'arrowup') key = 'up';
+                else if (key === 'arrowdown') key = 'down';
+                else if (key === 'arrowleft') key = 'left';
+                else if (key === 'arrowright') key = 'right';
+                
+                keys.push(key);
+                const newHotkey = keys.join('+');
+                
+                if (confirm(`Are you sure you want to bind this action to: ${newHotkey}?`)) {
+                    el.value = newHotkey;
+                    el.dataset.oldValue = newHotkey;
+                    el.blur();
+                } else {
+                    el.value = '';
+                    el.placeholder = "Press key combination...";
+                }
+            });
+            
+            el.addEventListener('focus', () => {
+                el.dataset.oldValue = el.value;
+                el.value = '';
+                el.placeholder = "Press key combination...";
+            });
+            
+            el.addEventListener('blur', () => {
+                if (el.value === '' || el.value.endsWith('+...')) {
+                    el.value = el.dataset.oldValue || '';
+                }
+                el.placeholder = "";
+            });
+        }
+
+        attachHotkeyListener('hotkey');
+        attachHotkeyListener('pauseHotkey');
+
+        loadConfig();
+        fetchStatus();
+        setupWebSocket();
+        setInterval(fetchStatus, 1000);
+    </script>
+</body>
+</html>

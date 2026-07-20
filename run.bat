@@ -2,7 +2,7 @@
 setlocal
 
 echo =========================================
-echo Cookie Run - AutoPlay & Gift Bot
+echo Cookie Run - AutoPlay ^& Gift Bot
 echo =========================================
 
 REM Check if Python is installed
@@ -40,6 +40,8 @@ echo.
 echo Starting bot...
 echo =========================================
 python main.py
-
-echo.
-pause
+if %errorlevel% neq 0 (
+    echo.
+    echo [!] Bot exited with an error.
+    pause
+)

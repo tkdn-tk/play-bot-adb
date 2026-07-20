@@ -59,6 +59,11 @@ class ScreenCapture:
         
     def capture(self, return_rgb=False):
         """Capture the emulator screen via ADB and return as numpy array (BGR by default)."""
+        if hasattr(self, 'bot'):
+            self.bot.wait_if_paused()
+            if not getattr(self.bot, 'running', True):
+                raise Exception("Bot stopped by user.")
+                
         if not self.device:
             if not self.find_window():
                 return None
@@ -66,9 +71,17 @@ class ScreenCapture:
         try:
             # Capture using adb exec-out screencap -p
             import subprocess
-            from adbutils._utils import get_adb_exe
+            import adbutils
             
-            adb = get_adb_exe()
+            try:
+                adb = adbutils.adb_path()
+            except (ImportError, AttributeError):
+                # Fallback if adbutils.adb_path() is removed or broken in this version
+                if hasattr(adbutils.adb, 'path'):
+                    adb = adbutils.adb.path
+                else:
+                    adb = "adb"
+                    
             png_bytes = subprocess.check_output(
                 [adb, "-s", self.serial, "exec-out", "screencap", "-p"],
                 stderr=subprocess.STDOUT

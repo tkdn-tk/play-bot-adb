@@ -8,6 +8,10 @@ init(autoreset=True)
 class Logger:
     def __init__(self):
         self.last_log_time = None
+        self.log_callbacks = []
+        
+    def add_callback(self, cb):
+        self.log_callbacks.append(cb)
                 
     def set_config(self, config):
         if "logging" in config:
@@ -30,6 +34,12 @@ class Logger:
         self.last_log_time = now
         
         print(f"{Style.DIM}[{timestamp}]{Style.RESET_ALL} {color}[{level}]{Style.RESET_ALL} {Style.DIM}+{duration_str}{Style.RESET_ALL} {msg}")
+        
+        for cb in getattr(self, "log_callbacks", []):
+            try:
+                cb({"timestamp": timestamp, "level": level, "msg": msg})
+            except Exception:
+                pass
 
     def info(self, msg):
         self._print("INFO", msg, Fore.CYAN)

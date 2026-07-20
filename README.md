@@ -42,7 +42,13 @@ An advanced, fully automated ADB-based bot for Cookie Run, designed to run seaml
 
 ## Usage
 
-You can start the bot using the included batch script (which automatically handles dependencies):
+The easiest way to use the bot is via the **Web UI**. Run:
+```bash
+python webui.py
+```
+This will automatically open a control panel in your browser (`http://localhost:8000`) and minimize the console to your system tray.
+
+Alternatively, you can start the bot in CLI mode using the included batch script (which automatically handles dependencies):
 ```bash
 run.bat
 ```

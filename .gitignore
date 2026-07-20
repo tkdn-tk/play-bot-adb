@@ -8,6 +8,15 @@ env/
 ENV/
 .env
 
+# OS specific
+.DS_Store
+Thumbs.db
+
+# IDE specific
+.vscode/
+.idea/
+*.swp
+
 # Bot specific
 config.yaml
 logs/

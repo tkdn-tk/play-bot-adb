@@ -93,7 +93,7 @@ def execute_send_gifts(bot):
     
     last_sent_time = time.time()
     
-    while time.time() - last_sent_time < 30.0:
+    while time.time() - last_sent_time < 60.0:
         screen = bot.screen.capture()
         if screen is None:
             time.sleep(0.5)
@@ -169,7 +169,7 @@ def execute_send_gifts(bot):
             bot.clicker.swipe(cx, y1, cx, y2, duration=500)
             time.sleep(0.5) # reduced from 1.5s to speed up scanning
             
-    logger.info("No gifts sent for 30 seconds. Finished sending gifts.")
+    logger.info("No gifts sent for 60 seconds. Finished sending gifts.")
     return State.OPEN_MAIL_MENU
 
 def execute_open_mail_menu(bot):
