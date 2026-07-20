@@ -219,6 +219,7 @@ def minimize_to_tray():
                 h = ctypes.windll.kernel32.GetConsoleWindow()
                 if h == 0:
                     ctypes.windll.kernel32.AllocConsole()
+                    new_h = ctypes.windll.kernel32.GetConsoleWindow()
                     
                     try:
                         fd = os.open("CONOUT$", os.O_RDWR)
@@ -232,6 +233,12 @@ def minimize_to_tray():
                     print("--- Cookie Run AutoPlay Bot Console ---")
                     print("Console restored. Click the 'X' to hide it back into the tray.")
                     
+                    if new_h:
+                        import win32gui, win32con
+                        win32gui.ShowWindow(new_h, win32con.SW_RESTORE)
+                        try: win32gui.SetForegroundWindow(new_h)
+                        except: pass
+                        
                     global _console_handler
                     def console_handler(ctrl_type):
                         if ctrl_type == 2:
