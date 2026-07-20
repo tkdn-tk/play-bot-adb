@@ -191,20 +191,9 @@ def minimize_to_tray():
             import win32gui
             import win32con
             
-            # Hide the console window instead of killing it
-            win32gui.ShowWindow(hwnd, win32con.SW_HIDE)
-            
-            # Prevent 'X' from killing the bot
-            global _console_handler
-            def console_handler(ctrl_type):
-                if ctrl_type == 2: # CTRL_CLOSE_EVENT
-                    h = ctypes.windll.kernel32.GetConsoleWindow()
-                    if h:
-                        win32gui.ShowWindow(h, win32con.SW_HIDE)
-                    return True
-                return False
-            _console_handler = ctypes.WINFUNCTYPE(ctypes.wintypes.BOOL, ctypes.wintypes.DWORD)(console_handler)
-            ctypes.windll.kernel32.SetConsoleCtrlHandler(_console_handler, True)
+            # Detach and kill the old console window
+            ctypes.windll.kernel32.FreeConsole()
+            win32gui.PostMessage(hwnd, win32con.WM_CLOSE, 0, 0)
             
         except Exception:
             pass
@@ -225,22 +214,39 @@ def minimize_to_tray():
             return image
             
         def show_window(icon, item):
-            h = ctypes.windll.kernel32.GetConsoleWindow()
-            if h == 0:
+            if ctypes.windll.kernel32.GetConsoleWindow() == 0:
                 ctypes.windll.kernel32.AllocConsole()
+                
+                # Fix underlying file descriptors for existing loggers
+                fd = os.open("CONOUT$", os.O_RDWR)
+                os.dup2(fd, sys.stdout.fileno())
+                os.dup2(fd, sys.stderr.fileno())
+                
                 sys.stdout = open("CONOUT$", "w", encoding="utf-8")
                 sys.stderr = open("CONOUT$", "w", encoding="utf-8")
                 print("--- Cookie Run AutoPlay Bot Console ---")
-                h = ctypes.windll.kernel32.GetConsoleWindow()
+                print("Console restored. Click the 'X' to hide it back into the tray.")
                 
-            if h:
-                import win32gui
-                import win32con
-                win32gui.ShowWindow(h, win32con.SW_RESTORE)
-                try:
-                    win32gui.SetForegroundWindow(h)
-                except:
-                    pass
+                # Prevent 'X' from killing the bot
+                global _console_handler
+                def console_handler(ctrl_type):
+                    if ctrl_type == 2: # CTRL_CLOSE_EVENT
+                        # Free the console instead of dying
+                        ctypes.windll.kernel32.FreeConsole()
+                        return True
+                    return False
+                _console_handler = ctypes.WINFUNCTYPE(ctypes.wintypes.BOOL, ctypes.wintypes.DWORD)(console_handler)
+                ctypes.windll.kernel32.SetConsoleCtrlHandler(_console_handler, True)
+            else:
+                h = ctypes.windll.kernel32.GetConsoleWindow()
+                if h:
+                    import win32gui
+                    import win32con
+                    win32gui.ShowWindow(h, win32con.SW_RESTORE)
+                    try:
+                        win32gui.SetForegroundWindow(h)
+                    except:
+                        pass
             
         def exit_action(icon, item):
             icon.stop()
