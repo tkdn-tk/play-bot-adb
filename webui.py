@@ -214,32 +214,33 @@ def minimize_to_tray():
             return image
             
         def show_window(icon, item):
-            if ctypes.windll.kernel32.GetConsoleWindow() == 0:
-                ctypes.windll.kernel32.AllocConsole()
-                
-                # Fix underlying file descriptors for existing loggers
-                fd = os.open("CONOUT$", os.O_RDWR)
-                os.dup2(fd, sys.stdout.fileno())
-                os.dup2(fd, sys.stderr.fileno())
-                
-                sys.stdout = open("CONOUT$", "w", encoding="utf-8")
-                sys.stderr = open("CONOUT$", "w", encoding="utf-8")
-                print("--- Cookie Run AutoPlay Bot Console ---")
-                print("Console restored. Click the 'X' to hide it back into the tray.")
-                
-                # Prevent 'X' from killing the bot
-                global _console_handler
-                def console_handler(ctrl_type):
-                    if ctrl_type == 2: # CTRL_CLOSE_EVENT
-                        # Free the console instead of dying
-                        ctypes.windll.kernel32.FreeConsole()
-                        return True
-                    return False
-                _console_handler = ctypes.WINFUNCTYPE(ctypes.wintypes.BOOL, ctypes.wintypes.DWORD)(console_handler)
-                ctypes.windll.kernel32.SetConsoleCtrlHandler(_console_handler, True)
-            else:
+            try:
+                import os, sys, ctypes
                 h = ctypes.windll.kernel32.GetConsoleWindow()
-                if h:
+                if h == 0:
+                    ctypes.windll.kernel32.AllocConsole()
+                    
+                    try:
+                        fd = os.open("CONOUT$", os.O_RDWR)
+                        os.dup2(fd, 1)
+                        os.dup2(fd, 2)
+                    except Exception:
+                        pass
+                    
+                    sys.stdout = open("CONOUT$", "w", encoding="utf-8")
+                    sys.stderr = open("CONOUT$", "w", encoding="utf-8")
+                    print("--- Cookie Run AutoPlay Bot Console ---")
+                    print("Console restored. Click the 'X' to hide it back into the tray.")
+                    
+                    global _console_handler
+                    def console_handler(ctrl_type):
+                        if ctrl_type == 2:
+                            ctypes.windll.kernel32.FreeConsole()
+                            return True
+                        return False
+                    _console_handler = ctypes.WINFUNCTYPE(ctypes.wintypes.BOOL, ctypes.wintypes.DWORD)(console_handler)
+                    ctypes.windll.kernel32.SetConsoleCtrlHandler(_console_handler, True)
+                else:
                     import win32gui
                     import win32con
                     win32gui.ShowWindow(h, win32con.SW_RESTORE)
@@ -247,6 +248,9 @@ def minimize_to_tray():
                         win32gui.SetForegroundWindow(h)
                     except:
                         pass
+            except Exception as e:
+                with open("tray_error.log", "a") as f:
+                    f.write(str(e) + "\n")
             
         def exit_action(icon, item):
             icon.stop()
