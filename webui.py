@@ -236,7 +236,7 @@ def minimize_to_tray():
             if h:
                 import win32gui
                 import win32con
-                win32gui.ShowWindow(h, win32con.SW_SHOW)
+                win32gui.ShowWindow(h, win32con.SW_RESTORE)
                 try:
                     win32gui.SetForegroundWindow(h)
                 except:
