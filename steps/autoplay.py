@@ -83,6 +83,9 @@ def execute_prepare_play(bot):
             time.sleep(1.0)
             if bot.config.get("skip_buy_buffs", False):
                 logger.info("Skipping buy buffs phase...")
+                if bot.config.get("skip_multi_buy", False):
+                    logger.info("Skipping multi-buy phase...")
+                    return State.START_GAME
                 return State.MULTI_BUY
             return State.BUY_BUFFS
             
@@ -104,6 +107,9 @@ def execute_buy_buffs(bot):
         bot.clicker.click_template("buy_boost_confirm.png", timeout=3.0)
         time.sleep(0.5)
         
+    if bot.config.get("skip_multi_buy", False):
+        logger.info("Skipping multi-buy phase...")
+        return State.START_GAME
     return State.MULTI_BUY
 
 def execute_multi_buy(bot):

@@ -772,6 +772,14 @@
                     </label>
                 </div>
 
+                <div class="switch-group" style="border-bottom: none;">
+                    <label for="skipMultiBuy">🛍️ Skip Multi Buy Phase</label>
+                    <label class="switch">
+                        <input type="checkbox" id="skipMultiBuy">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
                 <div class="switch-group" style="margin-bottom: 5px; border-bottom: none;">
                     <label for="skipMacro">🏃 Skip Macro Execution</label>
                     <label class="switch">
@@ -845,6 +853,14 @@
                 <div class="form-group">
                     <label>Gift Interval (minutes) <span style="opacity: 0.6; font-size: 11px; font-weight: normal;">(Default: 60)</span></label>
                     <input type="number" id="giftInterval" step="1">
+                </div>
+                
+                <div class="switch-group" style="border-bottom: none; margin-bottom: 10px;">
+                    <label>Skip First Gift & Start Timer <span style="opacity: 0.6; font-size: 11px; font-weight: normal;">(Default: On)</span></label>
+                    <label class="switch">
+                        <input type="checkbox" id="skipFirstGift">
+                        <span class="slider"></span>
+                    </label>
                 </div>
 
                 <h3 style="margin: 0; color: var(--accent-color); font-weight: 900; text-decoration: underline;">Bot Behavior</h3>
@@ -1051,15 +1067,24 @@
         
         function updateFlowchartVisibility() {
             const skipBuffs = document.getElementById('skipBuffs').checked;
+            const skipMultiBuy = document.getElementById('skipMultiBuy').checked;
             const skipMacro = document.getElementById('skipMacro').checked;
             
             const buyBuffsBadge = document.getElementById('state-BUY_BUFFS');
+            const multiBuyBadge = document.getElementById('state-MULTI_BUY');
             const runMacroBadge = document.getElementById('state-RUN_MACRO');
             
             if (buyBuffsBadge) {
                 buyBuffsBadge.style.display = skipBuffs ? 'none' : '';
                 if (buyBuffsBadge.nextElementSibling && buyBuffsBadge.nextElementSibling.classList.contains('flow-arrow')) {
                     buyBuffsBadge.nextElementSibling.style.display = skipBuffs ? 'none' : '';
+                }
+            }
+            
+            if (multiBuyBadge) {
+                multiBuyBadge.style.display = skipMultiBuy ? 'none' : '';
+                if (multiBuyBadge.nextElementSibling && multiBuyBadge.nextElementSibling.classList.contains('flow-arrow')) {
+                    multiBuyBadge.nextElementSibling.style.display = skipMultiBuy ? 'none' : '';
                 }
             }
             
@@ -1073,8 +1098,12 @@
             drawFlowLines();
         }
         
-        document.getElementById('skipBuffs').addEventListener('change', updateFlowchartVisibility);
-        document.getElementById('skipMacro').addEventListener('change', updateFlowchartVisibility);
+        document.getElementById('skipBuffs').addEventListener('change', () => { updateFlowchartVisibility(); saveConfig(); });
+        document.getElementById('skipMultiBuy').addEventListener('change', () => { updateFlowchartVisibility(); saveConfig(); });
+        document.getElementById('skipMacro').addEventListener('change', () => { updateFlowchartVisibility(); saveConfig(); });
+        
+        const skipFirstGiftEl = document.getElementById('skipFirstGift');
+        if (skipFirstGiftEl) skipFirstGiftEl.addEventListener('change', saveConfig);
         
         async function loadInstances() {
             try {
@@ -1111,6 +1140,7 @@
                 document.getElementById('botMode').value = currentConfig.bot_mode || 'default';
                 document.getElementById('skipMacro').checked = currentConfig.skip_macro !== false;
                 document.getElementById('skipBuffs').checked = currentConfig.skip_buy_buffs !== false;
+                document.getElementById('skipMultiBuy').checked = currentConfig.skip_multi_buy === true;
                 
                 if(currentConfig.adb && currentConfig.adb.serial) {
                     document.getElementById('adbSerial').value = currentConfig.adb.serial;
@@ -1121,6 +1151,7 @@
                 document.getElementById('stepMin').value = currentConfig.delays?.between_steps_min || 0.5;
                 document.getElementById('stepMax').value = currentConfig.delays?.between_steps_max || 1.0;
                 document.getElementById('giftInterval').value = currentConfig.gift_interval_minutes || 60;
+                document.getElementById('skipFirstGift').checked = currentConfig.skip_first_gift !== false;
                 document.getElementById('matchThreshold').value = currentConfig.match_threshold || 0.69;
                 document.getElementById('maxRetries').value = currentConfig.retry?.max_per_step || 3;
                 document.getElementById('restartOnFailure').checked = currentConfig.retry?.restart_on_failure !== false;
@@ -1143,6 +1174,7 @@
             currentConfig.bot_mode = document.getElementById('botMode').value;
             currentConfig.skip_macro = document.getElementById('skipMacro').checked;
             currentConfig.skip_buy_buffs = document.getElementById('skipBuffs').checked;
+            currentConfig.skip_multi_buy = document.getElementById('skipMultiBuy').checked;
             
             const serial = document.getElementById('adbSerial').value;
             if(serial) {
@@ -1160,6 +1192,7 @@
             currentConfig.delays.between_steps_max = parseFloat(document.getElementById('stepMax').value);
 
             currentConfig.gift_interval_minutes = parseInt(document.getElementById('giftInterval').value);
+            currentConfig.skip_first_gift = document.getElementById('skipFirstGift').checked;
             currentConfig.match_threshold = parseFloat(document.getElementById('matchThreshold').value);
 
             if (!currentConfig.retry) currentConfig.retry = {};
@@ -1214,6 +1247,7 @@
                 document.getElementById('botMode').value = 'default';
                 document.getElementById('adbSerial').value = '';
                 document.getElementById('skipBuffs').checked = true;
+                document.getElementById('skipMultiBuy').checked = false;
                 document.getElementById('skipMacro').checked = true;
             }
         }
@@ -1225,6 +1259,7 @@
                 document.getElementById('stepMin').value = '0.5';
                 document.getElementById('stepMax').value = '1.0';
                 document.getElementById('giftInterval').value = '60';
+                document.getElementById('skipFirstGift').checked = true;
                 document.getElementById('matchThreshold').value = '0.69';
                 document.getElementById('maxRetries').value = '3';
                 document.getElementById('restartOnFailure').checked = true;

@@ -91,6 +91,9 @@ class AutoPlayBot:
         self.current_loop_start_time = time.time()
         self.current_state_start_time = time.time()
         
+        if self.config.get("skip_first_gift", True):
+            self.last_gift_time = time.time()
+        
         try:
             import ctypes
             # ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED

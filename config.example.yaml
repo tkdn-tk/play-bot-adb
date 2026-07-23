@@ -23,6 +23,7 @@ match_threshold: 0.69
 # You can specify either minutes or hours (minutes takes priority)
 gift_interval_minutes: 60
 # gift_interval_hours: 1.0
+skip_first_gift: true # Set to true to skip sending a gift on the first run and just start the timer
 
 # Delays (seconds) — randomized between min and max
 delays:
@@ -34,6 +35,7 @@ delays:
 # Autoplay Settings
 bot_mode: "default" # Options: "default" or "fast_start" (spam clicks center during start)
 skip_buy_buffs: false # Set to true to skip the buff buying phase
+skip_multi_buy: false # Set to true to skip the multi-buy phase
 skip_macro: false # Set to true to skip running the gameplay macro
 
 

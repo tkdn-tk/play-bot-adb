@@ -194,6 +194,26 @@ def main():
         choices=buffs_choices
     ).ask()
     config["skip_buy_buffs"] = bool(skip_buy_buffs)
+    
+    multi_buy_choices = [
+        questionary.Choice(title="Skip Multi Buy", value=True),
+        questionary.Choice(title="Multi Buy (Default)", value=False)
+    ]
+    skip_multi_buy = questionary.select(
+        "Multi buy phase:",
+        choices=multi_buy_choices
+    ).ask()
+    config["skip_multi_buy"] = bool(skip_multi_buy)
+    
+    first_gift_choices = [
+        questionary.Choice(title="Skip First Gift (Default)", value=True),
+        questionary.Choice(title="Send First Gift Immediately", value=False)
+    ]
+    skip_first_gift = questionary.select(
+        "First Gift behavior:",
+        choices=first_gift_choices
+    ).ask()
+    config["skip_first_gift"] = bool(skip_first_gift)
             
     logger.set_config(config)
     
