@@ -11,6 +11,7 @@ ENV/
 # OS specific
 .DS_Store
 Thumbs.db
+*.lnk
 
 # IDE specific
 .vscode/
