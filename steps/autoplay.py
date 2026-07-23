@@ -158,28 +158,22 @@ def execute_wait_start_boost(bot):
     mode = bot.config.get("bot_mode", "default")
     
     if mode == "fast_start":
-        logger.info("[Fast Start] Spam clicking center until start boost appears...")
-        center_x, center_y = 640, 360 # Assuming 1280x720 resolution
+        logger.info("[Fast Start] Waiting for start boost to appear...")
         
-        # Phase 1: Spam click center until start_boost.png appears
-        start_wait = time.time()
-        found_boost = False
-        while time.time() - start_wait < 15.0 and bot.running:
-            bot.clicker.fast_click(center_x, center_y, offset_range=5)
-            if bot.detector.find("start_boost.png"):
-                found_boost = True
-                break
+        # Phase 1: Wait for start_boost.png to appear
+        result = bot.detector.wait_for("start_boost.png", timeout=15.0)
                 
-        if not found_boost:
+        if not result:
             logger.error("Fast Start: start boost did not appear in time.")
             return None
             
-        logger.info("[Fast Start] Start boost appeared! Spam clicking until it disappears...")
+        target_x, target_y = result[0], result[1]
+        logger.info(f"[Fast Start] Start boost appeared at ({target_x}, {target_y})! Spam clicking it until it disappears...")
         
-        # Phase 2: Spam click center until start_boost.png disappears
+        # Phase 2: Spam click start_boost.png until it disappears
         disappear_start = time.time()
         while time.time() - disappear_start < 15.0 and bot.running:
-            bot.clicker.fast_click(center_x, center_y, offset_range=5)
+            bot.clicker.fast_click(target_x, target_y, offset_range=5)
             if not bot.detector.find("start_boost.png"):
                 logger.info("[Fast Start] Start boost disappeared, proceeding to WAIT_RESULT.")
                 return State.WAIT_RESULT
